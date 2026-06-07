@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[SelectionBase]
 public class CameraController : MonoBehaviour
 {
     [Header("카메라 위치")]
@@ -30,7 +31,7 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        Rotate();
+        
     }
 
     private void LateUpdate()
@@ -40,10 +41,8 @@ public class CameraController : MonoBehaviour
         transform.position = Mgr_Camera.Inst.Target.position + Mgr_Camera.Inst.TargetOffset;
     }
 
-    private void Rotate()
+    public void Rotate(Vector2 look)
     {
-        Vector2 look = Mgr_Input.Inst.Look;
-
         Yaw   += look.x * Mgr_Camera.Inst.SensitivityX;
         Pitch -= look.y * Mgr_Camera.Inst.SensitivityY;
         Pitch  = Mathf.Clamp(Pitch, MinPitch, MaxPitch);
