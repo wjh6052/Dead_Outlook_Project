@@ -38,9 +38,9 @@ public class Entity_Player : Entity
     private void Start()
     {
         Mgr_PlayerController.Inst.SetPlayer(this);
-        Mgr_UI.Inst.PocketInventory.UpdateInventory(Inventory.PocketData);
-        Mgr_UI.Inst.BeltEquipSlot.Init(Inventory);
-        Mgr_UI.Inst.BagEquipSlot.Init(Inventory);
+        //Mgr_UI.Inst.PocketInventory.UpdateInventory(Inventory.PocketData);
+        //Mgr_UI.Inst.BeltEquipSlot.Init(Inventory);
+        //Mgr_UI.Inst.BagEquipSlot.Init(Inventory);
     }
 
     public float GetWalkSpeed()        => WalkSpeed;

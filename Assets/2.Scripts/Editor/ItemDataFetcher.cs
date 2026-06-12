@@ -59,7 +59,6 @@ public class ItemDataFetcher : EditorWindow
                     PrefabKey   = cells.Count > 9 ? cells[9].value : "",
                     GridWidth   = cells.Count > 10 ? int.Parse(cells[10].value) : 0,
                     GridHeight  = cells.Count > 11 ? int.Parse(cells[11].value) : 0,
-                    IsBelt      = cells.Count > 12 ? bool.Parse(cells[12].value) : false,
                 });
             }
             catch (Exception e)

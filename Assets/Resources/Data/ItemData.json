@@ -1,6 +1,51 @@
 {
     "Items": [
         {
+            "ItemType": "Bag",
+            "Rarity": "Epic",
+            "ID": "Test_Belt_1",
+            "Name": "밸트",
+            "Description": "111111111 설명",
+            "Weight": 10.0,
+            "MaxStack": 1,
+            "TileSizeX": 2,
+            "TileSizeY": 2,
+            "IconKey": "-",
+            "PrefabKey": "-",
+            "GridWidth": 4,
+            "GridHeight": 2
+        },
+        {
+            "ItemType": "Bag",
+            "Rarity": "Unique",
+            "ID": "Test_Bag_2",
+            "Name": "가방1",
+            "Description": "222222 설명",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 3,
+            "TileSizeY": 3,
+            "IconKey": "-",
+            "PrefabKey": "-",
+            "GridWidth": 6,
+            "GridHeight": 8
+        },
+        {
+            "ItemType": "Bag",
+            "Rarity": "Legendary",
+            "ID": "Test_Bag_3",
+            "Name": "가방2",
+            "Description": "33333333 설명",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 4,
+            "TileSizeY": 4,
+            "IconKey": "-",
+            "PrefabKey": "-",
+            "GridWidth": 14,
+            "GridHeight": 14
+        },
+        {
             "ItemType": "General",
             "Rarity": "Normal",
             "ID": "Test_1",
@@ -13,28 +58,26 @@
             "IconKey": "UI/Icon/Temp_ItemIcon",
             "PrefabKey": "",
             "GridWidth": 0,
-            "GridHeight": 0,
-            "IsBelt": false
+            "GridHeight": 0
         },
         {
             "ItemType": "General",
-            "Rarity": "Epic",
+            "Rarity": "Rare",
             "ID": "Test_2",
             "Name": "아이템2",
             "Description": "테스트 아이템 설명",
             "Weight": 20.0,
             "MaxStack": 2,
             "TileSizeX": 1,
-            "TileSizeY": 1,
+            "TileSizeY": 2,
             "IconKey": "test IconKey",
             "PrefabKey": "test PrefabKey",
             "GridWidth": 0,
-            "GridHeight": 0,
-            "IsBelt": false
+            "GridHeight": 0
         },
         {
             "ItemType": "General",
-            "Rarity": "Unique",
+            "Rarity": "Epic",
             "ID": "Test_3",
             "Name": "아이템3",
             "Description": "테스트 아이템 설명",
@@ -45,56 +88,7 @@
             "IconKey": "test IconKey",
             "PrefabKey": "test PrefabKey",
             "GridWidth": 0,
-            "GridHeight": 0,
-            "IsBelt": false
-        },
-        {
-            "ItemType": "Bag",
-            "Rarity": "Normal",
-            "ID": "Test_Belt_1",
-            "Name": "밸트",
-            "Description": "111111111 설명",
-            "Weight": 10.0,
-            "MaxStack": 1,
-            "TileSizeX": 2,
-            "TileSizeY": 2,
-            "IconKey": "-",
-            "PrefabKey": "-",
-            "GridWidth": 4,
-            "GridHeight": 2,
-            "IsBelt": true
-        },
-        {
-            "ItemType": "Bag",
-            "Rarity": "Epic",
-            "ID": "Test_Bag_2",
-            "Name": "가방1",
-            "Description": "222222 설명",
-            "Weight": 20.0,
-            "MaxStack": 1,
-            "TileSizeX": 3,
-            "TileSizeY": 3,
-            "IconKey": "-",
-            "PrefabKey": "-",
-            "GridWidth": 6,
-            "GridHeight": 8,
-            "IsBelt": false
-        },
-        {
-            "ItemType": "Bag",
-            "Rarity": "Unique",
-            "ID": "Test_Bag_3",
-            "Name": "가방2",
-            "Description": "33333333 설명",
-            "Weight": 20.0,
-            "MaxStack": 1,
-            "TileSizeX": 4,
-            "TileSizeY": 4,
-            "IconKey": "-",
-            "PrefabKey": "-",
-            "GridWidth": 14,
-            "GridHeight": 14,
-            "IsBelt": false
+            "GridHeight": 0
         }
     ]
 }

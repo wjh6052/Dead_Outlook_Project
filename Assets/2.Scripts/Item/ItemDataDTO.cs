@@ -18,7 +18,6 @@ public class ItemDataDTO
     public string PrefabKey;
     public int    GridWidth;
     public int    GridHeight;
-    public bool   IsBelt;
 }
 
 [Serializable]

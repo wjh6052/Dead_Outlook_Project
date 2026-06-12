@@ -58,7 +58,7 @@ public class Mgr_ItemData : MonoBehaviour
                 case EItemType.Bag:
                     item = new Item_Bag(itemType, rarity, dto.ID, dto.Name, dto.Description,
                                         dto.Weight, dto.MaxStack, dto.TileSizeX, dto.TileSizeY, icon, prefab,
-                                        dto.GridWidth, dto.GridHeight, dto.IsBelt);
+                                        dto.GridWidth, dto.GridHeight);
                     break;
                 default:
                     item = new Item(itemType, rarity, dto.ID, dto.Name, dto.Description,

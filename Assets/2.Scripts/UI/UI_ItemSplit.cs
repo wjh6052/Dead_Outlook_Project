@@ -12,40 +12,40 @@ public class UI_ItemSplit : MonoBehaviour
     [SerializeField] private Button          Btn_Confirm;  // 확인 버튼
     [SerializeField] private Button          Btn_Cancel;   // 취소 버튼
 
-    private UI_Item_Icon TargetIcon;  // 분할 대상 아이콘
+    //private UI_Item_Icon TargetIcon;  // 분할 대상 아이콘
     private int          Amount;     // 분할 대상 아이템 총 개수
     private int          SplitCount; // 현재 선택 중인 분할 개수
 
-    public void Info(UI_Item_Icon inTargetIcon)
+    public void Info()//(UI_Item_Icon inTargetIcon)
     {
-        TargetIcon = inTargetIcon;
-
-        DragWindow.Info(GetComponent<RectTransform>());
-
-        // 이름 설정
-        ItemName_TMP.text = TargetIcon.ItemData.Name;
-
-        Amount     = TargetIcon.ItemData.Amount;
-        SplitCount = Amount / 2;
-
-        // 분할 개수 기본값 — 절반
-        Amount_Input.text = SplitCount.ToString();
-
-        // 스크롤바 범위: 1 ~ Amount-1, 기본값 절반
-        Split_Scrollbar.numberOfSteps = Amount - 1;
-        Split_Scrollbar.value         = (float)(SplitCount - 1) / (Amount - 2);
-
-
-        // 스크롤바 값 변경 시 입력창 갱신
-        Split_Scrollbar.onValueChanged.AddListener(OnScrollbarChanged);
-
-        // 입력창 설정 — 정수만 허용
-        Amount_Input.contentType = TMP_InputField.ContentType.IntegerNumber;
-        Amount_Input.onEndEdit.AddListener(OnInputChanged);
-
-        // 버튼 설정
-        Btn_Confirm.onClick.AddListener(OnConfirm);
-        Btn_Cancel.onClick.AddListener(OnCancel);
+        //TargetIcon = inTargetIcon;
+        //
+        //DragWindow.Info(GetComponent<RectTransform>());
+        //
+        //// 이름 설정
+        //ItemName_TMP.text = TargetIcon.ItemData.Name;
+        //
+        //Amount     = TargetIcon.ItemData.Amount;
+        //SplitCount = Amount / 2;
+        //
+        //// 분할 개수 기본값 — 절반
+        //Amount_Input.text = SplitCount.ToString();
+        //
+        //// 스크롤바 범위: 1 ~ Amount-1, 기본값 절반
+        //Split_Scrollbar.numberOfSteps = Amount - 1;
+        //Split_Scrollbar.value         = (float)(SplitCount - 1) / (Amount - 2);
+        //
+        //
+        //// 스크롤바 값 변경 시 입력창 갱신
+        //Split_Scrollbar.onValueChanged.AddListener(OnScrollbarChanged);
+        //
+        //// 입력창 설정 — 정수만 허용
+        //Amount_Input.contentType = TMP_InputField.ContentType.IntegerNumber;
+        //Amount_Input.onEndEdit.AddListener(OnInputChanged);
+        //
+        //// 버튼 설정
+        //Btn_Confirm.onClick.AddListener(OnConfirm);
+        //Btn_Cancel.onClick.AddListener(OnCancel);
     }
 
     // 스크롤바 값(0~1)을 1~(Amount-1) 범위로 변환해 입력창에 반영
@@ -75,14 +75,14 @@ public class UI_ItemSplit : MonoBehaviour
     // 수락버튼
     void OnConfirm()
     {
-        Item splitItem = TargetIcon.ItemData.Copy();
-        splitItem.SetAmount(SplitCount);
-
-        if (TargetIcon.ParentInventory.TryAddItem(splitItem))
-        {
-            TargetIcon.ItemData.DecreaseAmount(SplitCount);
-            TargetIcon.UpdateAmountText();
-        }
+        //Item splitItem = TargetIcon.ItemData.Copy();
+        //splitItem.SetAmount(SplitCount);
+        //
+        //if (TargetIcon.ParentInventory.TryAddItem(splitItem))
+        //{
+        //    TargetIcon.ItemData.DecreaseAmount(SplitCount);
+        //    TargetIcon.UpdateAmountText();
+        //}
 
             
         Destroy(gameObject);

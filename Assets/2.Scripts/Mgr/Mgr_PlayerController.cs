@@ -94,9 +94,7 @@ public class Mgr_PlayerController : MonoBehaviour
                     Player.Movement.SpeedType    = Mgr_Input.Inst.Run ? ESpeedType.Run : ESpeedType.Walk;
                     Player.Movement.bCrouchInput = Mgr_Input.Inst.Crouch;
 
-                    UpdateInteractRaycast();
-
-                    UpdateInteractableViewStates();
+                    UpdateInteractables();
                     break;
 
                 case EControlType.Vehicle:
@@ -110,27 +108,18 @@ public class Mgr_PlayerController : MonoBehaviour
         }
     }
 
-    // Interactable.All을 순회해 각 오브젝트의 카메라 시야 상태 갱신
-    private void UpdateInteractableViewStates()
+    // 시야 상태 갱신 + 레이캐스트 포커스 탐색
+    private void UpdateInteractables()
     {
         Camera  cam           = Mgr_Camera.Inst.CameraController.Cam;
         Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(cam);
 
         foreach (Interactable interactable in Interactable.All)
             interactable.UpdateViewState(cam, frustumPlanes);
-    }
 
-    // 카메라 중앙에서 레이를 쏴 태그가 Interactable인 오브젝트 중 가장 가까운 것을 FocusedInteractable에 저장
-    // 감지 대상이 바뀌면 이전 오브젝트 OnLoseFocus, 새 오브젝트 OnFocus 호출
-    private void UpdateInteractRaycast()
-    {
-        // 카메라 중앙 기준 레이 생성
-        Camera cam = Mgr_Camera.Inst.CameraController.Cam;
-        Ray    ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-
-        // 태그가 Interactable인 오브젝트 중 가장 가까운 것 탐색
-        Interactable hit      = null;
-        float        minDist  = float.MaxValue;
+        Ray          ray     = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        Interactable hit     = null;
+        float        minDist = float.MaxValue;
 
         foreach (RaycastHit hitInfo in Physics.RaycastAll(ray, InteractRange))
         {
@@ -141,7 +130,6 @@ public class Mgr_PlayerController : MonoBehaviour
             hit     = hitInfo.collider.GetComponent<Interactable>();
         }
 
-        // 감지 대상이 바뀐 경우에만 포커스 전환
         if (hit != FocusedInteractable)
         {
             if (FocusedInteractable != null) FocusedInteractable.OnLoseFocus();
