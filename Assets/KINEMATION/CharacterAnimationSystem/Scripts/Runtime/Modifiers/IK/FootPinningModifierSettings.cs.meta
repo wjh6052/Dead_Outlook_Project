@@ -1,9 +1,0 @@
-fileFormatVersion: 2
-guid: aeba06b1f45195749bf594015179a18d
-AssetOrigin:
-  serializedVersion: 1
-  productId: 320309
-  packageName: Character Animation System
-  packageVersion: 2.1.0
-  assetPath: Assets/KINEMATION/CharacterAnimationSystem/Scripts/Runtime/Modifiers/IK/FootPinningModifierSettings.cs
-  uploadId: 931258
