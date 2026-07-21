@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -38,29 +39,14 @@ public class Mgr_UI : MonoBehaviour
     
 
 
-
-    [Header("테스트")]
-    public InventoryData TestData_1;
-    public UI_InventoryGrid  TestInventory_1;
-    public InventoryData TestData_2;
-    public UI_InventoryGrid  TestInventory_2;
-
-    public Item_Bag TestEquipSlot_1;
-    public UI_EquipSlot EquipSlot_1;
-
-    
-
-
-    
-
     public Canvas MainCanvas { get; private set; } // 메인 UI 캔버스
-    private GameObject Inventory_Panel;       // 인벤토리 패널
+    public UI_Inventory Inventory_Panel { get; private set; }       // 인벤토리 패널
+
     private UI_ContextMenu ContextMenuPrefab; // 컨텍스트 메뉴 프리팹
 
     #region UI 프리팹
     public UI_ItemSlot  SlotPrefab      { get; private set; } // 슬롯 프리팹
     public UI_ItemIcon  IconPrefab      { get; private set; } // 아이콘 프리팹
-    public UI_InventoryGrid InventoryGridPrefab { get; private set; } // 인벤토리 프리팹
 
     #endregion
 
@@ -70,56 +56,28 @@ public class Mgr_UI : MonoBehaviour
     {
         Inst              = this;
         MainCanvas        = GameObject.FindWithTag("MainCanvas").GetComponent<Canvas>();
-        Inventory_Panel   = MainCanvas.transform.Find("Inventory_Panel").gameObject;
-        SlotPrefab      = Resources.Load<UI_ItemSlot> ("Prefab/UI/Inventory/PF_UI_Item_Slot");
-        IconPrefab      = Resources.Load<UI_ItemIcon> ("Prefab/UI/Inventory/PF_UI_Item_Icon");
-        InventoryGridPrefab = Resources.Load<UI_InventoryGrid>("Prefab/UI/Inventory/PF_UI_InventoryGrid");
+        Inventory_Panel   = MainCanvas.transform.Find("UI_Inventory").GetComponent<UI_Inventory>();
 
-        
+        //UI 프리팹
+        {
+            SlotPrefab = Resources.Load<UI_ItemSlot>("Prefab/UI/Inventory/PF_UI_Item_Slot");
+            IconPrefab = Resources.Load<UI_ItemIcon>("Prefab/UI/Inventory/PF_UI_Item_Icon");
+            ContextMenuPrefab = Resources.Load<UI_ContextMenu>("Prefab/UI/Inventory/PF_UI_ContextMenu");
+        }
+
     }
 
-    private void Start()
+
+
+    private IEnumerator Start()
     {
+        yield return null; // 한 프레임 대기
         OnInventory(false);
-
-        // TODO: 테스트 코드 — 삭제 필요
-        TestInventory_1.Init(TestData_1);
-        TestInventory_2.Init(TestData_2);
-        EquipSlot_1.Init(val => TestEquipSlot_1 = val as Item_Bag);
-        
-        Mgr_PlayerController.Inst.OnInventory();
-        {
-            Item i = Mgr_ItemData.Inst.GetItem("Test_1");
-            i.AddAmount(40);
-
-            TestInventory_1.TryAddItem(i.Copy());
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_1"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_2"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_3"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_Belt_1"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_Bag_2"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_Bag_3"));
-
-        }
     }
 
     private void Update()
     {
-        // 테스트
-        if (Keyboard.current.backquoteKey.wasPressedThisFrame)
-        {
-            Item i = Mgr_ItemData.Inst.GetItem("Test_1");
-            i.AddAmount(40);
 
-            TestInventory_1.TryAddItem(i.Copy());
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_1"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_2"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_3"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_Belt_1"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_Bag_2"));
-            TestInventory_1.TryAddItem(Mgr_ItemData.Inst.GetItem("Test_Bag_3"));
-
-        }
     }
 
 
@@ -128,8 +86,9 @@ public class Mgr_UI : MonoBehaviour
     public void OnInventory(bool isOn)
     {
         IsOnUI = isOn;
-        Inventory_Panel.SetActive(isOn);
-        if (IsOnUI == false) return;
+        Inventory_Panel.gameObject.SetActive(isOn);
+        if (IsOnUI == true) Inventory_Panel.Init();
+
 
     }
 

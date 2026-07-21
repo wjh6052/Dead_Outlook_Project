@@ -27,52 +27,65 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     #endregion
 
 
+    [Header("이동")]
+    [Tooltip("걷기 이동 속도 (m/s)")]
+    [SerializeField] private float WalkSpeed = 5f;
+    [Tooltip("달리기 이동 속도 (m/s)")]
+    [SerializeField] private float RunSpeed = 8f;
+    [Tooltip("출발·방향전환 가속도 (m/s²) — 높을수록 빠르게 목표 속도에 도달")]
+    [SerializeField] private float MoveAcceleration = 10f;
+    [Tooltip("이동 방향으로 회전하는 속도 (높을수록 즉각 회전)")]
+    [SerializeField] private float RotationSpeed = 10f;
+
+    [Header("웅크리기")]
+    [Tooltip("웅크리기 이동 속도 (m/s)")]
+    [SerializeField] private float CrouchSpeed = 2f;
+    [Tooltip("기립 시 캡슐 높이 (m)")]
+    [SerializeField] private float StandHeight = 2f;
+    [Tooltip("웅크리기 시 캡슐 높이 (m)")]
+    [SerializeField] private float CrouchHeight = 1f;
+    [Tooltip("웅크리기 전환 시 이동 불가 시간 (초)")]
+    [SerializeField] private float CrouchTransitionDuration = 0.5f;
+
+    [Header("점프")]
+    [Tooltip("점프 시 적용되는 수직 힘")]
+    [SerializeField] private float JumpForce = 3.5f;
+
+
     // 상승 엣지 감지 및 이동 내부 상태
-    private bool    bPrevCrouchInput; // 이전 프레임 웅크리기 버튼 상태 — 상승 엣지 감지용
-    private bool    bPrevJumpInput;   // 이전 프레임 점프 버튼 상태 — 상승 엣지 감지용
+    private bool    bPrevCrouchInput;    // 이전 프레임 웅크리기 버튼 상태 — 상승 엣지 감지용
+    private bool    bPrevJumpInput;      // 이전 프레임 점프 버튼 상태 — 상승 엣지 감지용
     private Vector3 HorizontalVelocity;  // 수평 속도 벡터 — 관성 계산에 사용
     private float   CurrentSpeed;        // 현재 실제 이동 속도
     private float   CrouchTransitionTimer; // 웅크리기 전환 중 속도 감소 타이머
 
-    [Tooltip("웅크리기 전환 시 이동 불가 시간 (초)")]
-    [SerializeField] private float CrouchTransitionDuration = 0.5f;
 
-    
     #region 디버그 (읽기 전용)
     [Header("디버그 (읽기 전용)")]
-    [Tooltip("이동 입력 (WASD)")]
-    [SerializeField] private Vector2 Debug_MoveInput;
-    [Tooltip("점프 버튼 상태")]
-    [SerializeField] private bool Debug_Jump;
-    [Tooltip("현재 이동 속도 타입")]
+    [SerializeField] private Vector2    Debug_MoveInput;
+    [SerializeField] private bool       Debug_Jump;
     [SerializeField] private ESpeedType Debug_SpeedType;
-    [Tooltip("현재 실제 이동 속도")]
-    [SerializeField] private float Debug_CurrentSpeed;
-    [Tooltip("지면 접촉 여부")]
-    [SerializeField] private bool Debug_IsGrounded;
-    [Tooltip("조준 중 여부")]
-    [SerializeField] private bool Debug_IsAim;
-    [Tooltip("웅크리기 버튼 상태")]
-    [SerializeField] private bool Debug_IsCrouching;
+    [SerializeField] private float      Debug_CurrentSpeed;
+    [SerializeField] private bool       Debug_IsGrounded;
+    [SerializeField] private bool       Debug_IsAim;
+    [SerializeField] private bool       Debug_IsCrouching;
     #endregion
 
 
-    private KinematicCharacterMotor KCCMotor;    // KCC 물리 처리 컴포넌트
-    private Entity_Player           EntityPlayer; // 플레이어 스탯 참조
+    private KinematicCharacterMotor KCCMotor; // KCC 물리 처리 컴포넌트
 
     private void Awake()
     {
         KCCMotor = GetComponent<KinematicCharacterMotor>();
         KCCMotor.CharacterController = this;
-        EntityPlayer = GetComponent<Entity_Player>();
     }
 
     // 현재 속도를 최대 속도 기준으로 0~1로 정규화 — 애니메이터 Speed 파라미터에 사용
     public float GetNormalizedSpeed()
     {
-        float maxSpeed = bIsCrouching ? EntityPlayer.GetCrouchSpeed()
-            : SpeedType == ESpeedType.Run ? EntityPlayer.GetRunSpeed()
-            : EntityPlayer.GetWalkSpeed();
+        float maxSpeed = bIsCrouching ? CrouchSpeed
+            : SpeedType == ESpeedType.Run ? RunSpeed
+            : WalkSpeed;
         return Mathf.Clamp01(CurrentSpeed / maxSpeed);
     }
 
@@ -94,15 +107,13 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         if (!bIsCrouching)
         {
             bIsCrouching = true;
-            float h = EntityPlayer.GetCrouchHeight();
-            KCCMotor.SetCapsuleDimensions(KCCMotor.Capsule.radius, h, h * 0.5f);
+            KCCMotor.SetCapsuleDimensions(KCCMotor.Capsule.radius, CrouchHeight, CrouchHeight * 0.5f);
             CrouchTransitionTimer = CrouchTransitionDuration;
         }
         else if (CanStandUp())
         {
             bIsCrouching = false;
-            float h = EntityPlayer.GetStandHeight();
-            KCCMotor.SetCapsuleDimensions(KCCMotor.Capsule.radius, h, h * 0.5f);
+            KCCMotor.SetCapsuleDimensions(KCCMotor.Capsule.radius, StandHeight, StandHeight * 0.5f);
             CrouchTransitionTimer = CrouchTransitionDuration;
         }
     }
@@ -111,9 +122,8 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     private bool CanStandUp()
     {
         float   r      = KCCMotor.Capsule.radius;
-        float   standH = EntityPlayer.GetStandHeight();
         Vector3 bottom = KCCMotor.TransientPosition + Vector3.up * r;
-        Vector3 top    = KCCMotor.TransientPosition + Vector3.up * (standH - r);
+        Vector3 top    = KCCMotor.TransientPosition + Vector3.up * (StandHeight - r);
         int     mask   = ~(1 << gameObject.layer);
         return !Physics.CheckCapsule(bottom, top, r - 0.01f, mask, QueryTriggerInteraction.Ignore);
     }
@@ -139,21 +149,20 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     {
         if (KCCMotor.GroundingStatus.IsStableOnGround)
         {
-            float targetSpeed = bIsCrouching ? EntityPlayer.GetCrouchSpeed()
-                : SpeedType == ESpeedType.Run ? EntityPlayer.GetRunSpeed()
-                : EntityPlayer.GetWalkSpeed();
+            float targetSpeed = bIsCrouching ? CrouchSpeed
+                : SpeedType == ESpeedType.Run ? RunSpeed
+                : WalkSpeed;
 
             if (CrouchTransitionTimer > 0f)
                 targetSpeed = 0f;
 
             Vector3 targetVel = GetDesiredMoveDirection() * targetSpeed;
 
-            float rate = targetVel.sqrMagnitude > 0.01f
-                ? EntityPlayer.GetMoveAcceleration()
-                : EntityPlayer.GetMoveDeceleration();
-
-            HorizontalVelocity = Vector3.MoveTowards(HorizontalVelocity, targetVel, rate * deltaTime);
-            CurrentSpeed       = HorizontalVelocity.magnitude;
+            if (targetVel.sqrMagnitude < 0.01f)
+                HorizontalVelocity = Vector3.zero;
+            else
+                HorizontalVelocity = Vector3.MoveTowards(HorizontalVelocity, targetVel, MoveAcceleration * deltaTime);
+            CurrentSpeed = HorizontalVelocity.magnitude;
 
             currentVelocity = new Vector3(HorizontalVelocity.x, 0f, HorizontalVelocity.z);
 
@@ -164,7 +173,7 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
                 else
                 {
                     KCCMotor.ForceUnground();
-                    currentVelocity += Vector3.up * EntityPlayer.GetJumpForce();
+                    currentVelocity += Vector3.up * JumpForce;
                 }
             }
         }
@@ -182,13 +191,13 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         {
             Vector3 camForward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up);
             if (camForward.sqrMagnitude < 0.01f) return;
-            currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(camForward), EntityPlayer.GetRotationSpeed() * deltaTime);
+            currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(camForward), RotationSpeed * deltaTime);
         }
         else
         {
             Vector3 moveDir = GetDesiredMoveDirection();
             if (moveDir.sqrMagnitude < 0.01f) return;
-            currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(moveDir), EntityPlayer.GetRotationSpeed() * deltaTime);
+            currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(moveDir), RotationSpeed * deltaTime);
         }
     }
 
@@ -200,13 +209,13 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     {
         bIsGrounded = KCCMotor.GroundingStatus.IsStableOnGround;
 
-        Debug_MoveInput = MoveInput;
-        Debug_Jump = bJump;
-        Debug_SpeedType = SpeedType;
+        Debug_MoveInput    = MoveInput;
+        Debug_Jump         = bJump;
+        Debug_SpeedType    = SpeedType;
         Debug_CurrentSpeed = CurrentSpeed;
-        Debug_IsGrounded = bIsGrounded;
-        Debug_IsAim = bAim;
-        Debug_IsCrouching = bCrouchInput;
+        Debug_IsGrounded   = bIsGrounded;
+        Debug_IsAim        = bAim;
+        Debug_IsCrouching  = bCrouchInput;
     }
     #endregion
 

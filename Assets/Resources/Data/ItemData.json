@@ -1,51 +1,6 @@
 {
     "Items": [
         {
-            "ItemType": "Bag",
-            "Rarity": "Epic",
-            "ID": "Test_Belt_1",
-            "Name": "밸트",
-            "Description": "111111111 설명",
-            "Weight": 10.0,
-            "MaxStack": 1,
-            "TileSizeX": 2,
-            "TileSizeY": 2,
-            "IconKey": "-",
-            "PrefabKey": "-",
-            "GridWidth": 4,
-            "GridHeight": 2
-        },
-        {
-            "ItemType": "Bag",
-            "Rarity": "Unique",
-            "ID": "Test_Bag_2",
-            "Name": "가방1",
-            "Description": "222222 설명",
-            "Weight": 20.0,
-            "MaxStack": 1,
-            "TileSizeX": 3,
-            "TileSizeY": 3,
-            "IconKey": "-",
-            "PrefabKey": "-",
-            "GridWidth": 6,
-            "GridHeight": 8
-        },
-        {
-            "ItemType": "Bag",
-            "Rarity": "Legendary",
-            "ID": "Test_Bag_3",
-            "Name": "가방2",
-            "Description": "33333333 설명",
-            "Weight": 20.0,
-            "MaxStack": 1,
-            "TileSizeX": 4,
-            "TileSizeY": 4,
-            "IconKey": "-",
-            "PrefabKey": "-",
-            "GridWidth": 14,
-            "GridHeight": 14
-        },
-        {
             "ItemType": "General",
             "Rarity": "Normal",
             "ID": "Test_1",
@@ -89,6 +44,51 @@
             "PrefabKey": "test PrefabKey",
             "GridWidth": 0,
             "GridHeight": 0
+        },
+        {
+            "ItemType": "Bag",
+            "Rarity": "Epic",
+            "ID": "Test_Belt_1",
+            "Name": "밸트",
+            "Description": "111111111 설명",
+            "Weight": 10.0,
+            "MaxStack": 1,
+            "TileSizeX": 2,
+            "TileSizeY": 2,
+            "IconKey": "-",
+            "PrefabKey": "-",
+            "GridWidth": 4,
+            "GridHeight": 2
+        },
+        {
+            "ItemType": "Bag",
+            "Rarity": "Unique",
+            "ID": "Test_Bag_2",
+            "Name": "가방1",
+            "Description": "222222 설명",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 3,
+            "TileSizeY": 3,
+            "IconKey": "-",
+            "PrefabKey": "-",
+            "GridWidth": 5,
+            "GridHeight": 5
+        },
+        {
+            "ItemType": "Bag",
+            "Rarity": "Legendary",
+            "ID": "Test_Bag_3",
+            "Name": "가방2",
+            "Description": "33333333 설명",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 4,
+            "TileSizeY": 4,
+            "IconKey": "-",
+            "PrefabKey": "-",
+            "GridWidth": 8,
+            "GridHeight": 6
         }
     ]
 }

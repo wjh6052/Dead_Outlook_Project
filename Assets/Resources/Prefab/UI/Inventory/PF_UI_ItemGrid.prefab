@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5938822727698443118}
   - component: {fileID: 9099025036095921810}
   m_Layer: 0
-  m_Name: PF_UI_InventoryGrid
+  m_Name: PF_UI_ItemGrid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

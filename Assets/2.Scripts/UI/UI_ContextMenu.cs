@@ -5,10 +5,26 @@ using UnityEngine.UI;
 
 public class UI_ContextMenu : MonoBehaviour
 {
-    [SerializeField] private Button Btn_Info;  // 정보 보기
-    [SerializeField] private Button Btn_Use;   // 사용
-    [SerializeField] private Button Btn_Split; // 분할
-    [SerializeField] private Button Btn_Drop;  // 버리기
+    private Button Btn_Info;  // 정보 보기
+    private Button Btn_Opne;   // 열기
+    private Button Btn_Use;   // 사용
+    private Button Btn_Split; // 분할
+    private Button Btn_Drop;  // 버리기
+
+
+    public void Init()
+    {
+        {
+            Btn_Info = gameObject.transform.Find("Btn_Info").GetComponent<Button>();
+            Btn_Use = gameObject.transform.Find("Btn_Use").GetComponent<Button>();
+            Btn_Split = gameObject.transform.Find("Btn_Split").GetComponent<Button>();
+            Btn_Drop = gameObject.transform.Find("Btn_Drop").GetComponent<Button>();
+        }
+
+
+
+    }
+
 
     //private UI_Item_Icon TargetIcon; // 우클릭된 아이콘
 

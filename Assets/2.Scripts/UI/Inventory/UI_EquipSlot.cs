@@ -1,15 +1,14 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class UI_EquipSlot : UI_InventoryGrid
+public class UI_EquipSlot : UI_ItemGrid
 {
     [Header("장착 가능한 아이템 타입")]
     [SerializeField] private EItemType AcceptType; // 장착 가능한 아이템 타입
 
-public UI_ItemIcon  EquippedIcon { get; private set; } // 현재 장착 슬롯의 아이콘
+    public UI_ItemIcon  EquippedIcon { get; private set; } // 현재 장착 슬롯의 아이콘
     private UI_ItemSlot         Slot;         // 고정 슬롯
     private System.Action<Item> EquippedItem; // 장착/해제 시 외부 데이터 갱신 콜백
-    private UI_InventoryGrid        Info;         // Item_Bag 장착 시 생성되는 인벤토리 UI
 
     public void Init(System.Action<Item> equippedItem = null)
     {
@@ -38,17 +37,10 @@ public UI_ItemIcon  EquippedIcon { get; private set; } // 현재 장착 슬롯�
     #region UI_ItemIcon에서 호출
     public override void HighlightSlots(int x, int y, Item item)
     {
-        if (EquippedIcon == null)
-        {
-            Slot.SetHighlight(CanAccept(item) ? ESlotHighlight.Valid : ESlotHighlight.Invalid);
-            return;
-        }
-
-        // 장착된 가방에 넣기 가능 여부 확인
-        Slot.SetHighlight(Info != null && Info.Data.CanAddItem(item) ? ESlotHighlight.Valid : ESlotHighlight.Invalid);
+        Slot.SetHighlight(EquippedIcon == null && CanAccept(item) ? ESlotHighlight.Valid : ESlotHighlight.Invalid);
     }
 
-    public override bool TryDrop(Item item, int x, int y, UI_InventoryGrid source, UI_ItemIcon sourceIcon)
+    public override bool TryDrop(Item item, int x, int y, UI_ItemGrid source, UI_ItemIcon sourceIcon)
     {
         // 슬롯이 비어있으면 장착
         if (EquippedIcon == null)
@@ -58,25 +50,11 @@ public UI_ItemIcon  EquippedIcon { get; private set; } // 현재 장착 슬롯�
             source.RemoveItem(sourceIcon);
             EquippedItem?.Invoke(item);
 
-            UI_ItemIcon icon = Instantiate(Mgr_UI.Inst.IconPrefab, Slot.transform);
-            icon.Init(item, this, true);
+            sourceIcon.MoveTo(this, Slot.transform, this);
 
-            EquippedIcon     = icon;
-            OccupiedBy[0, 0] = icon;
+            EquippedIcon     = sourceIcon;
+            OccupiedBy[0, 0] = sourceIcon;
 
-            if (item is Item_Bag bag)
-            {
-                Info = Instantiate(Mgr_UI.Inst.InventoryGridPrefab, transform);
-                Info.Init(bag.BagInventory);
-            }
-
-            return true;
-        }
-
-        // 장착된 가방 안으로 아이템 이동
-        if (Info != null && Info.TryAddItem(item))
-        {
-            source.RemoveItem(sourceIcon);
             return true;
         }
 
@@ -88,8 +66,6 @@ public UI_ItemIcon  EquippedIcon { get; private set; } // 현재 장착 슬롯�
         EquippedIcon     = null;
         OccupiedBy[0, 0] = null;
         EquippedItem?.Invoke(null);
-
-        if (Info != null) { Destroy(Info.gameObject); Info = null; }
     }
     #endregion
 }

@@ -11,14 +11,14 @@ public enum ESlotHighlight
 
 public class UI_ItemSlot : MonoBehaviour
 {
-    public UI_InventoryGrid Inventory; // 소속 인벤토리
+    public UI_ItemGrid Inventory; // 소속 인벤토리
     public int          GridX;     // 그리드 X 좌표
     public int          GridY;     // 그리드 Y 좌표
 
     private Image SlotImage; // 슬롯 배경 이미지
 
-    // UI_InventoryGrid/Update_Slots에서 슬롯 생성 시 호출
-    public void Init(UI_InventoryGrid inventory, int x, int y)
+    // UI_ItemGrid/Update_Slots에서 슬롯 생성 시 호출
+    public void Init(UI_ItemGrid inventory, int x, int y)
     {
         Inventory  = inventory;
         GridX      = x;

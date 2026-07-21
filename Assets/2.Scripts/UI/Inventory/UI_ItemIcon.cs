@@ -4,38 +4,44 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    private Image IconBack_Image;  // 아이템 이미지
     private RectTransform Icon_Visual;      // 아이콘 비주얼 루트
-    private Image Icon_Image;  // 아이템 이미지
     private TextMeshProUGUI Amount_TMP;  // 아이템 수량 텍스트
+    private Image IconBack_Image;           // 아이템 배경 이미지
+    private Image Icon_Image;               // 아이템 이미지
+    [SerializeField] private float ImagePadding = 5;
 
     public Item         ItemData    { get; private set; } // 아이템 데이터
-    public UI_InventoryGrid Inventory  { get; private set; } // 소속 인벤토리
-    private bool        IsEquipSlot;                     // 장착 슬롯 아이콘 여부
+    public UI_ItemGrid Inventory  { get; private set; } // 소속 인벤토리
+    private UI_EquipSlot EquipSlot;                      // 장착 슬롯 아이콘 여부
 
-    // ── 드래그 ────────────────────────────────────────────────────────────────
+    #region 드래그 변수
     public static UI_ItemIcon BeingDragged { get; private set; } // 현재 드래그 중인 아이콘
 
     private Vector3          StartPosition;        // 드롭 실패 시 복귀 위치
     private Transform        StartParent;          // 드롭 실패 시 복귀 부모
-    private UI_InventoryGrid     LastHoveredInventory; // 직전 프레임 호버 인벤토리 (하이라이트 초기화용)
+    private UI_ItemGrid     LastHoveredInventory; // 직전 프레임 호버 인벤토리 (하이라이트 초기화용)
     private UI_ItemSlot      LastHoveredSlot;      // 직전 프레임 호버 슬롯 (회전 시 하이라이트 갱신용)
     private GameObject       GhostIcon;            // 드래그 중 원위치에 표시되는 반투명 고스트
     private bool             bDraggingRotate;      // 드래그 중 회전 여부
 
     CanvasGroup CG; // 드래그 시 레이캐스트 제어용
+    #endregion
 
-
-    // UI_InventoryGrid.TryAddItem에서 아이콘 생성 시 호출
-    public void Init(Item item, UI_InventoryGrid inventory, bool isEquipSlot = false)
+    // 아이콘 생성 시 호출
+    public void Init(Item item, UI_ItemGrid inventory, UI_EquipSlot equipSlot = null)
     {
-        FindComponents();
+        // 컴포넌트 설정
+        IconBack_Image = transform.Find("IconBack_Image").GetComponent<Image>();
+        Icon_Image = transform.Find("Icon_Image").GetComponent<Image>();
+        Icon_Visual = Icon_Image.GetComponent<RectTransform>();
+        Amount_TMP = transform.Find("Amount_TMP").GetComponent<TextMeshProUGUI>();
+        CG = GetComponent<CanvasGroup>();
 
-        ItemData    = item;
-        Inventory   = inventory;
-        IsEquipSlot = isEquipSlot;
+        ItemData   = item;
+        Inventory  = inventory;
+        EquipSlot  = equipSlot;
 
         // 아이템 아이콘 설정
         Icon_Image.sprite  = item.Icon;
@@ -51,19 +57,13 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         SetRect(false);
     }
 
-    // 컴포넌트 설정
-    private void FindComponents()
+    // 드래그 완료 후 아이콘을 새 인벤토리/부모로 이동 — 인벤토리 참조 갱신 후 SetRect 재적용
+    public void MoveTo(UI_ItemGrid inventory, Transform parent, UI_EquipSlot equipSlot = null)
     {
-        if (IconBack_Image != null) return;
-
-        IconBack_Image = GetComponent<Image>();
-
-        Transform visual = transform.Find("Icon_Visual");
-        Icon_Visual = visual.GetComponent<RectTransform>();
-        Icon_Image = visual.Find("Icon_Image").GetComponent<Image>();
-        Amount_TMP = visual.Find("Amount_TMP").GetComponent<TextMeshProUGUI>();
-
-        CG = GetComponent<CanvasGroup>();
+        Inventory = inventory;
+        EquipSlot = equipSlot;
+        transform.SetParent(parent);
+        SetRect(false);
     }
 
     // 아이콘 RectTransform 위치 및 크기 설정
@@ -71,51 +71,41 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     {
         RectTransform rt = GetComponent<RectTransform>();
 
-        if (IsEquipSlot)
+        if (EquipSlot != null && !isDrag)
         {
-            // 장착 슬롯: 부모(Slot)에 꽉 채움
-            rt.anchorMin        = Vector2.zero;
-            rt.anchorMax        = Vector2.one;
-            rt.pivot            = new Vector2(0.5f, 0.5f);
-            rt.offsetMin        = Vector2.zero;
-            rt.offsetMax        = Vector2.zero;
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta        = transform.parent.GetComponent<RectTransform>().rect.size;
+        }
+        else
+        {
+            int sizeX = ItemData.IsRotated ? ItemData.TileSizeY : ItemData.TileSizeX;
+            int sizeY = ItemData.IsRotated ? ItemData.TileSizeX : ItemData.TileSizeY;
 
-            Icon_Visual.anchorMin        = Vector2.zero;
-            Icon_Visual.anchorMax        = Vector2.one;
-            Icon_Visual.offsetMin        = Vector2.zero;
-            Icon_Visual.offsetMax        = Vector2.zero;
-            Icon_Visual.localRotation    = Quaternion.identity;
-            return;
+            float cellSize = Mgr_UI.Inst.SlotCellSize;
+            float spacing  = Mgr_UI.Inst.SlotSpacing;
+
+            Vector2 anchor = isDrag ? new Vector2(0.5f, 0.5f) : new Vector2(0f, 1f);
+
+            rt.pivot            = anchor;
+            rt.anchorMin        = anchor;
+            rt.anchorMax        = anchor;
+            rt.sizeDelta        = new Vector2(sizeX * cellSize + (sizeX - 1) * spacing,
+                                              sizeY * cellSize + (sizeY - 1) * spacing);
+            rt.anchoredPosition = new Vector2( ItemData.SlotX * (cellSize + spacing),
+                                              -ItemData.SlotY * (cellSize + spacing));
+
+            
         }
 
-        int sizeX = ItemData.IsRotated ? ItemData.TileSizeY : ItemData.TileSizeX;
-        int sizeY = ItemData.IsRotated ? ItemData.TileSizeX : ItemData.TileSizeY;
-
-        float cellSize = Mgr_UI.Inst.SlotCellSize;
-        float spacing  = Mgr_UI.Inst.SlotSpacing;
-
-        Vector2 anchor = isDrag ? new Vector2(0.5f, 0.5f) : new Vector2(0f, 1f);
-
-        rt.pivot            = anchor;
-        rt.anchorMin        = anchor;
-        rt.anchorMax        = anchor;
-        rt.sizeDelta        = new Vector2(sizeX * cellSize + (sizeX - 1) * spacing,
-                                          sizeY * cellSize + (sizeY - 1) * spacing);
-        rt.anchoredPosition = new Vector2( ItemData.SlotX * (cellSize + spacing),
-                                          -ItemData.SlotY * (cellSize + spacing));
-
-        // 회전 시 Icon_Visual 크기를 반전시켜 이미지가 올바르게 채워지도록
-        float w = rt.sizeDelta.x;
-        float h = rt.sizeDelta.y;
-        Icon_Visual.sizeDelta     = ItemData.IsRotated ? new Vector2(h, w) : new Vector2(w, h);
         Icon_Visual.localRotation = Quaternion.Euler(0f, 0f, ItemData.IsRotated ? -90f : 0f);
+        Vector2 naturalSize = ItemData.IsRotated ? new Vector2(rt.sizeDelta.y, rt.sizeDelta.x) : rt.sizeDelta;
+        Icon_Visual.sizeDelta = naturalSize - Vector2.one * (ImagePadding * 2);
     }
 
     // 드래그 중 아이템 90도 회전 — sizeDelta·비주얼 갱신 (피벗/위치 유지)
     public void Rotate()
     {
         ItemData.ToggleRotation();
-        bDraggingRotate = !bDraggingRotate;
 
         int sizeX = ItemData.IsRotated ? ItemData.TileSizeY : ItemData.TileSizeX;
         int sizeY = ItemData.IsRotated ? ItemData.TileSizeX : ItemData.TileSizeY;
@@ -129,7 +119,6 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         rt.sizeDelta = new Vector2(w, h);
 
         // 회전 시 Icon_Visual 크기를 반전시켜 이미지가 올바르게 채워지도록
-        Icon_Visual.sizeDelta     = ItemData.IsRotated ? new Vector2(h, w) : new Vector2(w, h);
         Icon_Visual.localRotation = Quaternion.Euler(0f, 0f, ItemData.IsRotated ? -90f : 0f);
 
         // 하이라이트 즉시 갱신
@@ -141,8 +130,10 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     public void UpdateAmount() => Amount_TMP.text = ItemData.Amount.ToString();
 
     // 드래그 중인 아이템이 가방이고, 해당 인벤토리가 자기 자신의 BagInventory인지 확인
-    private bool IsOwnBagInventory(UI_InventoryGrid inventory)
+    private bool IsOwnBagInventory(UI_ItemGrid inventory)
         => ItemData is Item_Bag bag && inventory.Data == bag.BagInventory;
+
+    #region 드래그
 
     // IBeginDragHandler — 드래그 시작 시 한 번 호출
     public void OnBeginDrag(PointerEventData eventData)
@@ -169,7 +160,7 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     {
         transform.position = eventData.position;
 
-        GetUIUnderCursor(eventData, out UI_InventoryGrid hoveredInventory, out UI_ItemSlot hoveredSlot);
+        GetUIUnderCursor(eventData, out UI_ItemGrid hoveredInventory, out UI_ItemSlot hoveredSlot);
 
         // 인벤토리가 바뀌었으면 이전 인벤토리 하이라이트 초기화
         if (LastHoveredInventory != null && LastHoveredInventory != hoveredInventory)
@@ -185,8 +176,8 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         LastHoveredSlot      = hoveredSlot;
     }
 
-    // 커서 아래 UI_ItemSlot과 소속 UI_InventoryGrid를 탐색
-    private void GetUIUnderCursor(PointerEventData eventData, out UI_InventoryGrid inventory, out UI_ItemSlot slot)
+    // 커서 아래 UI_ItemSlot과 소속 UI_ItemGrid를 탐색
+    private void GetUIUnderCursor(PointerEventData eventData, out UI_ItemGrid inventory, out UI_ItemSlot slot)
     {
         inventory = null;
         slot      = null;
@@ -207,7 +198,6 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     }
 
     
-
     // IEndDragHandler — 드래그 종료 시 한 번 호출
     public void OnEndDrag(PointerEventData eventData)
     {
@@ -221,13 +211,12 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         if (GhostIcon != null) Destroy(GhostIcon);
 
         // 드롭 위치 탐색
-        GetUIUnderCursor(eventData, out UI_InventoryGrid hoveredInventory, out UI_ItemSlot hoveredSlot);
+        GetUIUnderCursor(eventData, out UI_ItemGrid hoveredInventory, out UI_ItemSlot hoveredSlot);
 
         if (hoveredInventory != null && hoveredSlot != null && !IsOwnBagInventory(hoveredInventory) &&
             hoveredInventory.TryDrop(ItemData, hoveredSlot.GridX, hoveredSlot.GridY, Inventory, this))
         {
             bDraggingRotate = false;
-            Destroy(gameObject);
             return;
         }
 
@@ -239,6 +228,18 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         bDraggingRotate = false;
     }
 
-    
+    #endregion
+
+
+    // IPointerClickHandler — 클릭 시 호출
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // 우클릭에만 반응
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            Debug.Log(ItemData.Name);
+
+        }
+    }
 
 }

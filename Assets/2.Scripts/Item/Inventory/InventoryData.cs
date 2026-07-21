@@ -4,8 +4,8 @@ using UnityEngine;
 [System.Serializable]
 public class InventoryData
 {
-    [SerializeField] public int          GridWidth  = 10;              // 그리드 가로 슬롯 수
-    [SerializeField] public int          GridHeight = 10;              // 그리드 세로 슬롯 수
+    [SerializeField] public int          GridWidth  = 0;              // 그리드 가로 슬롯 수
+    [SerializeField] public int          GridHeight = 0;              // 그리드 세로 슬롯 수
     [SerializeField] public List<Item>   Items      = new List<Item>(); // 저장된 아이템 목록
 
     // UI 없이 아이템이 들어갈 공간이 있는지 확인 (회전 포함)
