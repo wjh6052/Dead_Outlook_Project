@@ -18,60 +18,51 @@ public class UI_ItemGrid : MonoBehaviour
     protected UI_ItemIcon[,]  OccupiedBy; // 좌표별 점유 아이콘 (배치 가능 여부, 드래그 감지)
 
 
+    private void OnDestroy()
+    {
+        if (Data != null) Data.OnChanged -= OnDataChanged;
+    }
+
+    private void OnDataChanged() => Init(Data);
+
     public void Init(InventoryData data)
     {
-        // 컴포넌트 설정
+        if (Data != null) Data.OnChanged -= OnDataChanged;
+        if (SlotGrid == null)
         {
-            if (SlotGrid == null)
-            {
-                SlotLayer = transform.Find("SlotLayer").GetComponent<RectTransform>();
-                SlotGrid = SlotLayer.GetComponent<GridLayoutGroup>();
-
-                SlotGrid.cellSize = Vector2.one * Mgr_UI.Inst.SlotCellSize;
-                SlotGrid.spacing = Vector2.one * Mgr_UI.Inst.SlotSpacing;
-            }
-            if (IconLayer == null) IconLayer = transform.Find("IconLayer").GetComponent<RectTransform>();
+            SlotLayer = transform.Find("SlotLayer").GetComponent<RectTransform>();
+            SlotGrid  = SlotLayer.GetComponent<GridLayoutGroup>();
+            SlotGrid.cellSize = Vector2.one * Mgr_UI.Inst.SlotCellSize;
+            SlotGrid.spacing  = Vector2.one * Mgr_UI.Inst.SlotSpacing;
         }
+        if (IconLayer == null) IconLayer = transform.Find("IconLayer").GetComponent<RectTransform>();
 
-        // 슬롯 설정
-        {
-            if (data == null)
-            {
-                Data = null;
-
-                // 기존 슬롯 제거
-                foreach (Transform child in SlotLayer) Destroy(child.gameObject);
-
-                return;
-            }
-            else
-            {
-                Data = data;
-
-                Slots = new UI_ItemSlot[Data.GridWidth, Data.GridHeight];
-                OccupiedBy = new UI_ItemIcon[Data.GridWidth, Data.GridHeight];
-
-                SlotGrid.constraintCount = Data.GridWidth;
-
-                // 기존 슬롯 제거 후 재생성
-                foreach (Transform child in SlotLayer) Destroy(child.gameObject);
-
-                for (int y = 0; y < Data.GridHeight; y++)
-                    for (int x = 0; x < Data.GridWidth; x++)
-                    {
-                        UI_ItemSlot slot = Instantiate(Mgr_UI.Inst.SlotPrefab, SlotLayer);
-                        slot.Init(this, x, y);
-                        Slots[x, y] = slot;
-                    }
-            }
-        }
-
-        // 기존 아이콘 제거 후 Data의 아이템 배치
+        // 기존 슬롯/아이콘 제거
+        foreach (Transform child in SlotLayer) Destroy(child.gameObject);
         foreach (Transform child in IconLayer) Destroy(child.gameObject);
+
+        if (data == null) { Data = null; Slots = null; return; }
+
+        Data = data;
+        Data.OnChanged += OnDataChanged;
+
+        // 슬롯 생성
+        Slots = new UI_ItemSlot[Data.GridWidth, Data.GridHeight];
+        SlotGrid.constraintCount = Data.GridWidth;
+
+        for (int y = 0; y < Data.GridHeight; y++)
+            for (int x = 0; x < Data.GridWidth; x++)
+            {
+                UI_ItemSlot slot = Instantiate(Mgr_UI.Inst.SlotPrefab, SlotLayer);
+                slot.Init(this, x, y);
+                Slots[x, y] = slot;
+            }
+
+        // 아이콘 재배치
+        OccupiedBy = new UI_ItemIcon[Data.GridWidth, Data.GridHeight];
         List<Item> itemsToPlace = new List<Item>(Data.Items);
         Data.Items.Clear();
         foreach (Item item in itemsToPlace) PlaceItemAt(item, item.SlotX, item.SlotY);
-
     }
 
     
@@ -111,9 +102,9 @@ public class UI_ItemGrid : MonoBehaviour
         if (targetIcon != null && targetIcon != UI_ItemIcon.BeingDragged)
         {
             // 가방이면 내부 공간 확인
-            if (targetIcon.ItemData is Item_Bag bag)
+            if (targetIcon.ItemData is Item_Container bag)
             {
-                HighlightIconSlots(targetIcon, bag.BagInventory.CanAddItem(item) ? ESlotHighlight.Valid : ESlotHighlight.Invalid);
+                HighlightIconSlots(targetIcon, bag.ContainerInventory.CanAddItem(item) ? ESlotHighlight.Valid : ESlotHighlight.Invalid);
                 return;
             }
 
@@ -170,7 +161,7 @@ public class UI_ItemGrid : MonoBehaviour
         if (targetIcon != null && targetIcon != sourceIcon)
         {
             // 가방이면 내부로 아이템 이동
-            if (targetIcon.ItemData is Item_Bag bag && bag.BagInventory.TryAddItem(item))
+            if (targetIcon.ItemData is Item_Container bag && bag.ContainerInventory.TryAddItem(item))
             {
                 source.RemoveItem(sourceIcon);
                 Destroy(sourceIcon.gameObject);
@@ -297,6 +288,7 @@ public class UI_ItemGrid : MonoBehaviour
         for (int y = 0; y < Data.GridHeight; y++)
             for (int x = 0; x < Data.GridWidth; x++)
                 if (OccupiedBy[x, y] == icon) OccupiedBy[x, y] = null;
+        icon.ItemData.OnMoved?.Invoke();
     }
 
     // 특정 좌표에 아이템 배치 + 아이콘 생성 (드롭 성공 시 호출)

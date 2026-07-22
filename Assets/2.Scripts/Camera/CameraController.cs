@@ -10,15 +10,19 @@ public class CameraController : MonoBehaviour
     public float MinPitch = -30f;
     public float MaxPitch = 60f;
 
-    public Camera Cam { get; private set; }
+    public Camera MainCamera { get; private set; }
+    public Camera WorldUICamera { get; private set; }
 
     private float Yaw;
     private float Pitch;
 
     private void Start()
     {
-        Cam = GetComponentInChildren<Camera>();
-        Cam.transform.localPosition = CameraOffset;
+
+        MainCamera = transform.Find("Camera_Main").GetComponent<Camera>();
+        WorldUICamera = transform.Find("Camera_WorldUI").GetComponent<Camera>();
+        MainCamera.transform.localPosition = CameraOffset;
+        WorldUICamera.transform.localPosition = CameraOffset;
         Mgr_Camera.Inst.RegisterCamera(this);
     }
 

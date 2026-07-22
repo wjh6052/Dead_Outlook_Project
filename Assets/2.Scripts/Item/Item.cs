@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum EItemType // 아이템 타입 열거형
@@ -8,8 +9,7 @@ public enum EItemType // 아이템 타입 열거형
     Tool,       // 도구
     Food,       // 음식
     Medical,    // 의료
-    Material,   // 재료
-    Bag         // 가방
+    Container   // 컨테이너 (가방, 벨트, 상자 등)
 }
 
 public enum ERarity // 희귀도 열거형
@@ -58,6 +58,8 @@ public class Item
         Icon        = icon;
         Prefab      = prefab;
     }
+
+    public Action OnMoved; // 아이템이 다른 그리드로 이동할 때 호출
 
     // 동일한 새 인스턴스 반환
     public virtual Item Copy() => (Item)MemberwiseClone();

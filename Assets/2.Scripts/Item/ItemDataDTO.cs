@@ -16,6 +16,9 @@ public class ItemDataDTO
     public int    TileSizeY;
     public string IconKey;
     public string PrefabKey;
+
+    // Container 전용
+    public string ContainerType;
     public int    GridWidth;
     public int    GridHeight;
 }

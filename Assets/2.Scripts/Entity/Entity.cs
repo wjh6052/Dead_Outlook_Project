@@ -2,10 +2,11 @@ using UnityEngine;
 
 public abstract class Entity : MonoBehaviour
 {
-    [Header("Ä«¸Þ¶ó°¡ ºÙÀ» À§Ä¡")]
+    [Header("ì¹´ë©”ë¼ íƒ€ê²Ÿ ìœ„ì¹˜")]
     public Vector3 CameraTargetOffset = new Vector3(0f, 1.5f, 0f);
+    public bool DebugCameraTarget = false;
 
-    [Header("½ºÅÝ")]
+    [Header("ìŠ¤íƒ¯")]
     public float HP;
     public float MaxHP;
     
@@ -27,4 +28,18 @@ public abstract class Entity : MonoBehaviour
     {
 
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (Application.isPlaying || !DebugCameraTarget) return;
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            CameraController camCtrl = FindAnyObjectByType<CameraController>();
+            if (camCtrl == null) return;
+            UnityEditor.Undo.RecordObject(camCtrl.transform, "Debug Camera Target");
+            camCtrl.transform.position = transform.position + CameraTargetOffset;
+        };
+    }
+#endif
 }

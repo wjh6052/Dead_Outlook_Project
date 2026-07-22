@@ -11,22 +11,35 @@ public class UI_ContextMenu : MonoBehaviour
     private Button Btn_Split; // 분할
     private Button Btn_Drop;  // 버리기
 
+    private UI_ItemIcon TargetItemIcon; // 우클릭된 아이콘
 
-    public void Init()
+    private void Awake()
     {
-        {
-            Btn_Info = gameObject.transform.Find("Btn_Info").GetComponent<Button>();
-            Btn_Use = gameObject.transform.Find("Btn_Use").GetComponent<Button>();
-            Btn_Split = gameObject.transform.Find("Btn_Split").GetComponent<Button>();
-            Btn_Drop = gameObject.transform.Find("Btn_Drop").GetComponent<Button>();
-        }
+        Btn_Info    = gameObject.transform.Find("Btn_Info").GetComponent<Button>();
+        Btn_Opne    = gameObject.transform.Find("Btn_Opne").GetComponent<Button>();
+        Btn_Use     = gameObject.transform.Find("Btn_Use").GetComponent<Button>();
+        Btn_Split   = gameObject.transform.Find("Btn_Split").GetComponent<Button>();
+        Btn_Drop    = gameObject.transform.Find("Btn_Drop").GetComponent<Button>();
 
-
-
+        Btn_Info.onClick.AddListener(OnInfo);
+        Btn_Opne.onClick.AddListener(OnOpne);
+        Btn_Use.onClick.AddListener(OnUse);
+        Btn_Split.onClick.AddListener(OnSplit);
+        Btn_Drop.onClick.AddListener(OnDrop);
     }
 
+    public void Init(UI_ItemIcon itemIcon, Vector2 position)
+    {
+        TargetItemIcon = itemIcon;
+        transform.position = position;
 
-    //private UI_Item_Icon TargetIcon; // 우클릭된 아이콘
+        Item item = itemIcon.ItemData;
+        Btn_Opne.gameObject.SetActive(item.ItemType == EItemType.Container);
+        Btn_Use.gameObject.SetActive(item.ItemType == EItemType.Food || item.ItemType == EItemType.Medical);
+        Btn_Split.gameObject.SetActive(item.ItemType != EItemType.Weapon && item.ItemType != EItemType.Armor
+                                    && item.ItemType != EItemType.Container);
+        Btn_Split.interactable = item.Amount > 1;
+    }
 
     private void Update()
     {
@@ -39,41 +52,53 @@ public class UI_ContextMenu : MonoBehaviour
     }
 
 
-    //public void Show(UI_Item_Icon inTargetIcon, Vector2 position)
-    //{
-    //    TargetIcon = inTargetIcon;
-    //    transform.position = position;
-    //
-    //    Btn_Use.onClick.AddListener(OnUse);
-    //    Btn_Split.onClick.AddListener(OnSplit);
-    //    Btn_Drop.onClick.AddListener(OnDrop);
-    //    Btn_Info.onClick.AddListener(OnInfo);
-    //
-    //    // 해당 보유 아이템 개수가 1개보다 적을때 분할 버튼 비활성화
-    //    Btn_Split.interactable = inTargetIcon.ItemData.Amount > 1;
-    //
-    //}
-   
 
+    // 상세 보기 버튼
     private void OnInfo()
     {
-        Debug.Log($"정보 보기 버튼");
+        Item item = TargetItemIcon.ItemData;
+        UI_W_ItemInfo content = Instantiate(Resources.Load<UI_W_ItemInfo>("Prefab/UI/Window/PF_UI_W_ItemInfo"));
+        content.Init(item);
+        Mgr_UI.Inst.SpawnWindow(item.Name, content);
+        Destroy(gameObject);
     }
+
+    // 열기(가방) 버튼
+    private void OnOpne()
+    {
+        Item_Container bag = TargetItemIcon.ItemData as Item_Container;
+        UI_W_ContainerInventory content = Instantiate(Resources.Load<UI_W_ContainerInventory>("Prefab/UI/Window/PF_UI_W_ContainerInventory"));
+        content.Init(bag);
+        Mgr_UI.Inst.SpawnWindow(bag.Name, content);
+        Destroy(gameObject);
+    }
+
+    // 사용 버튼 (구현예정)
     private void OnUse()
     {
         Debug.Log($"사용 버튼");
     }
+
+    // 분할 버튼
     private void OnSplit()
     {
-        //UI_ItemSplit splitPrefab = Resources.Load<UI_ItemSplit>("Prefab/UI/Inventory/PF_UI_ItemSplit");
-        //UI_ItemSplit splitUI     = Instantiate(splitPrefab, Mgr_UI.Inst.MainCanvas.transform);
-        //splitUI.transform.SetAsLastSibling();
-        //splitUI.Info(TargetIcon);
-        //Destroy(gameObject);
+        UI_W_ItemSplit content = Instantiate(Resources.Load<UI_W_ItemSplit>("Prefab/UI/Window/PF_UI_W_ItemSplit"));
+        content.Init(TargetItemIcon);
+        Mgr_UI.Inst.SpawnWindow("아이템 분할", content);
+        Destroy(gameObject);
     }
+
+    // 버리기 버튼
     private void OnDrop()
     {
-        Debug.Log($"버리기 버튼");
+        Item item = TargetItemIcon.ItemData;
+        Vector3 pos = Mgr_PlayerController.Inst.Player.transform.position;
+
+        TargetItemIcon.Inventory.RemoveItem(TargetItemIcon);
+        Destroy(TargetItemIcon.gameObject);
+
+        Mgr_Item.Inst.SpawnItem(item, pos);
+        Destroy(gameObject);
     }
     
 }

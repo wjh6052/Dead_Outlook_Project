@@ -21,6 +21,12 @@ public class Mgr_Game : MonoBehaviour
         Inst = this;
     }
 
+    private void Update()
+    {
+        
+    }
+
+
     public void SetGameState(EGameState newGameState)
     {
         GameState = newGameState;
@@ -44,6 +50,8 @@ public class Mgr_Game : MonoBehaviour
                 break;
         }
     }
+
+    
 
     private IEnumerator Start()
     {

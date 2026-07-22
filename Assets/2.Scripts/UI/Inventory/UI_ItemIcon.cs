@@ -6,15 +6,17 @@ using UnityEngine.UI;
 
 public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
+    public Item ItemData { get; private set; } // 아이템 데이터
+    public UI_ItemGrid Inventory { get; private set; } // 소속 인벤토리
+    private UI_EquipSlot EquipSlot;                      // 장착 슬롯 아이콘 여부
+
     private RectTransform Icon_Visual;      // 아이콘 비주얼 루트
     private TextMeshProUGUI Amount_TMP;  // 아이템 수량 텍스트
     private Image IconBack_Image;           // 아이템 배경 이미지
     private Image Icon_Image;               // 아이템 이미지
     [SerializeField] private float ImagePadding = 5;
 
-    public Item         ItemData    { get; private set; } // 아이템 데이터
-    public UI_ItemGrid Inventory  { get; private set; } // 소속 인벤토리
-    private UI_EquipSlot EquipSlot;                      // 장착 슬롯 아이콘 여부
+
 
     #region 드래그 변수
     public static UI_ItemIcon BeingDragged { get; private set; } // 현재 드래그 중인 아이콘
@@ -29,16 +31,18 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     CanvasGroup CG; // 드래그 시 레이캐스트 제어용
     #endregion
 
+    private void Awake()
+    {
+        IconBack_Image = transform.Find("IconBack_Image").GetComponent<Image>();
+        Icon_Image     = transform.Find("Icon_Image").GetComponent<Image>();
+        Icon_Visual    = Icon_Image.GetComponent<RectTransform>();
+        Amount_TMP     = transform.Find("Amount_TMP").GetComponent<TextMeshProUGUI>();
+        CG             = GetComponent<CanvasGroup>();
+    }
+
     // 아이콘 생성 시 호출
     public void Init(Item item, UI_ItemGrid inventory, UI_EquipSlot equipSlot = null)
     {
-        // 컴포넌트 설정
-        IconBack_Image = transform.Find("IconBack_Image").GetComponent<Image>();
-        Icon_Image = transform.Find("Icon_Image").GetComponent<Image>();
-        Icon_Visual = Icon_Image.GetComponent<RectTransform>();
-        Amount_TMP = transform.Find("Amount_TMP").GetComponent<TextMeshProUGUI>();
-        CG = GetComponent<CanvasGroup>();
-
         ItemData   = item;
         Inventory  = inventory;
         EquipSlot  = equipSlot;
@@ -129,9 +133,9 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     // Amount_TMP 텍스트를 ItemData.Amount 기준으로 갱신
     public void UpdateAmount() => Amount_TMP.text = ItemData.Amount.ToString();
 
-    // 드래그 중인 아이템이 가방이고, 해당 인벤토리가 자기 자신의 BagInventory인지 확인
-    private bool IsOwnBagInventory(UI_ItemGrid inventory)
-        => ItemData is Item_Bag bag && inventory.Data == bag.BagInventory;
+    // 드래그 중인 아이템이 가방이고, 해당 인벤토리가 자기 자신의 Inventory인지 확인
+    private bool IsOwnInventory(UI_ItemGrid inventory)
+        => ItemData is Item_Container bag && inventory.Data == bag.ContainerInventory;
 
     #region 드래그
 
@@ -167,7 +171,7 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             LastHoveredInventory.ClearHighlights();
 
         // 슬롯 위에 있으면 하이라이트, 인벤토리 위지만 슬롯 밖이면 초기화
-        if (hoveredInventory != null && hoveredSlot != null && !IsOwnBagInventory(hoveredInventory))
+        if (hoveredInventory != null && hoveredSlot != null && !IsOwnInventory(hoveredInventory))
             hoveredInventory.HighlightSlots(hoveredSlot.GridX, hoveredSlot.GridY, ItemData);
         else if (hoveredInventory != null)
             hoveredInventory.ClearHighlights();
@@ -213,7 +217,7 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         // 드롭 위치 탐색
         GetUIUnderCursor(eventData, out UI_ItemGrid hoveredInventory, out UI_ItemSlot hoveredSlot);
 
-        if (hoveredInventory != null && hoveredSlot != null && !IsOwnBagInventory(hoveredInventory) &&
+        if (hoveredInventory != null && hoveredSlot != null && !IsOwnInventory(hoveredInventory) &&
             hoveredInventory.TryDrop(ItemData, hoveredSlot.GridX, hoveredSlot.GridY, Inventory, this))
         {
             bDraggingRotate = false;
@@ -236,10 +240,7 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     {
         // 우클릭에만 반응
         if (eventData.button == PointerEventData.InputButton.Right)
-        {
-            Debug.Log(ItemData.Name);
-
-        }
+            Mgr_UI.Inst.ShowContextMenu(this, eventData.position);
     }
 
 }

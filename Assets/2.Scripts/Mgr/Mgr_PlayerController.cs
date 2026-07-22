@@ -51,7 +51,7 @@ public class Mgr_PlayerController : MonoBehaviour
     {
         if (FocusedInteractable != null)
         {
-            Debug.Log(FocusedInteractable.gameObject.name);
+            //Debug.Log(FocusedInteractable.gameObject.name);
 
             FocusedInteractable.Interact();
         }
@@ -88,7 +88,7 @@ public class Mgr_PlayerController : MonoBehaviour
     // 시야 상태 갱신 + 레이캐스트 포커스 탐색
     private void UpdateInteractables()
     {
-        Camera  cam           = Mgr_Camera.Inst.CameraController.Cam;
+        Camera  cam           = Mgr_Camera.Inst.CameraController.MainCamera;
         Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(cam);
 
         foreach (Interactable interactable in Interactable.All)
@@ -104,7 +104,7 @@ public class Mgr_PlayerController : MonoBehaviour
             if (hitInfo.distance >= minDist) continue;
 
             minDist = hitInfo.distance;
-            hit     = hitInfo.collider.GetComponent<Interactable>();
+            hit = hitInfo.collider.GetComponent<Interactable>();
         }
 
         if (hit != FocusedInteractable)
@@ -120,9 +120,9 @@ public class Mgr_PlayerController : MonoBehaviour
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
-        if (Mgr_Camera.Inst?.CameraController?.Cam == null) return;
+        if (Mgr_Camera.Inst?.CameraController?.MainCamera == null) return;
 
-        Camera cam = Mgr_Camera.Inst.CameraController.Cam;
+        Camera cam = Mgr_Camera.Inst.CameraController.MainCamera;
         Ray    ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
 
         // 감지됐으면 초록, 아니면 빨강

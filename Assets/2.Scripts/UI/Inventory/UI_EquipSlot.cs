@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class UI_EquipSlot : UI_ItemGrid
 {
-    [Header("장착 가능한 아이템 타입")]
-    [SerializeField] private EItemType AcceptType; // 장착 가능한 아이템 타입
+    [Header("장착 가능한 컨테이너 타입")]
+    [SerializeField] private EContainerType AcceptContainerType; // 장착 가능한 컨테이너 (Bag/Vest/Case)
 
     public UI_ItemIcon  EquippedIcon { get; private set; } // 현재 장착 슬롯의 아이콘
     private UI_ItemSlot         Slot;         // 고정 슬롯
@@ -22,17 +22,9 @@ public class UI_EquipSlot : UI_ItemGrid
         Slots[0, 0] = Slot;
     }
 
-    // 슬롯에 장착 가능한 아이템인지 확인 — 타입 불일치 시 false, 타입별 세부 조건 추가 가능
+    // 슬롯에 장착 가능한 아이템인지 확인
     private bool CanAccept(Item item)
-    {
-        if (item.ItemType != AcceptType) return false;
-
-        switch (AcceptType)
-        {
-            case EItemType.Bag: return item is Item_Bag;
-            default:            return true;
-        }
-    }
+        => item is Item_Container c && c.ContainerType == AcceptContainerType;
 
     #region UI_ItemIcon에서 호출
     public override void HighlightSlots(int x, int y, Item item)

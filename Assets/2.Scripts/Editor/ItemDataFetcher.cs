@@ -44,7 +44,8 @@ public class ItemDataFetcher : EditorWindow
 
             try
             {
-                DataList.Items.Add(new ItemDataDTO
+                // 공통 필드
+                ItemDataDTO dto = new ItemDataDTO
                 {
                     ItemType    = itemType.ToString(),
                     Rarity      = cells[0].value,
@@ -55,11 +56,21 @@ public class ItemDataFetcher : EditorWindow
                     MaxStack    = int.Parse(cells[5].value),
                     TileSizeX   = int.Parse(cells[6].value),
                     TileSizeY   = int.Parse(cells[7].value),
-                    IconKey     = cells.Count > 8 ? cells[8].value : "UI/Icon/Temp_ItemIcon",
-                    PrefabKey   = cells.Count > 9 ? cells[9].value : "",
-                    GridWidth   = cells.Count > 10 ? int.Parse(cells[10].value) : 0,
-                    GridHeight  = cells.Count > 11 ? int.Parse(cells[11].value) : 0,
-                });
+                    IconKey     = "UI/Icon/"     + (cells.Count > 8 && !string.IsNullOrEmpty(cells[8].value) ? cells[8].value : "Icon_Temp"),
+                    PrefabKey   = "Prefab/Item/" + (cells.Count > 9 && !string.IsNullOrEmpty(cells[9].value) ? cells[9].value : "PF_TestItem"),
+                };
+
+                // 타입별 추가 필드
+                switch (itemType)
+                {
+                    case EItemType.Container: // 가방, 조끼, 케이스
+                        dto.ContainerType = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? cells[10].value : "Bag";
+                        dto.GridWidth     = cells.Count > 11 ? int.Parse(cells[11].value) : 0;
+                        dto.GridHeight    = cells.Count > 12 ? int.Parse(cells[12].value) : 0;
+                        break;
+                }
+
+                DataList.Items.Add(dto);
             }
             catch (Exception e)
             {

@@ -3,24 +3,18 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    [SerializeField] public Vector3 InteractUIOffset = new Vector3(0f, 0f, 0f); // Interact UI가 표시될 오프셋
     public static List<Interactable> All = new List<Interactable>(); // 씬의 모든 Interactable 목록
 
-    GameObject Interact_Dot;  // 근접 시 표시되는 점 이미지
-    GameObject Interact_Icon; // 조준 시 표시되는 상호작용 이미지
 
     Outline OutlineComp;  // 외각선 컴포넌트
     public bool IsInView { get; private set; } // 현재 카메라 시야에 들어와 있는지 여부
 
+    public Vector3 InteractUIPosition => transform.position + InteractUIOffset;
+
     private void Awake()
     {
         All.Add(this);
-
-        // InteractUI 하위에서 이름으로 자동 탐색
-        Interact_Dot  = transform.Find("InteractUI/Interact_Dot")?.gameObject;
-        Interact_Icon = transform.Find("InteractUI/Interact_Icon")?.gameObject;
-
-        if (Interact_Dot)  Interact_Dot.SetActive(false);
-        if (Interact_Icon) Interact_Icon.SetActive(false);
 
         // 외각선
         OutlineComp             = gameObject.AddComponent<Outline>();
@@ -28,6 +22,7 @@ public class Interactable : MonoBehaviour
         OutlineComp.OutlineColor = Color.white;
         OutlineComp.OutlineWidth = 3f;
         OutlineComp.enabled      = false;
+        gameObject.tag = "Interactable";
     }
 
     private void OnDestroy()
@@ -63,37 +58,37 @@ public class Interactable : MonoBehaviour
     }
 
     // 카메라 시야에 들어왔을 때 호출
-    public virtual void OnEnterView()
-    {
-        Interact_Dot.gameObject.SetActive(true);
-    }
+    public virtual void OnEnterView() { }
 
     // 카메라 시야에서 벗어났을 때 호출
-    public virtual void OnExitView()
-    {
-        Interact_Dot.gameObject.SetActive(false);
-    }
+    public virtual void OnExitView() { }
 
     // 레이가 이 오브젝트에 맞기 시작할 때 호출
     public virtual void OnFocus()
     {
         OutlineComp.enabled = true;
-        if (Interact_Dot) Interact_Dot.SetActive(true);
-
-        Interact_Dot.gameObject.SetActive(false);
-        Interact_Icon.gameObject.SetActive(true);
+        Mgr_UI.Inst.ShowInteractUI(true, this);
     }
 
     // 레이가 이 오브젝트에서 벗어날 때 호출
     public virtual void OnLoseFocus()
     {
         OutlineComp.enabled = false;
-        if (Interact_Dot) Interact_Dot.SetActive(false);
-
-        Interact_Dot.gameObject.SetActive(true);
-        Interact_Icon.gameObject.SetActive(false);
+        Mgr_UI.Inst.ShowInteractUI(false);
     }
 
     // 플레이어가 F키를 눌렀을 때 호출 — 서브클래스에서 override
     public virtual void Interact() { }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        // InteractUI가 표시될 위치를 씬 뷰에서 시각화
+        Vector3 uiPos = InteractUIPosition;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawSphere(uiPos, 0.06f);
+        UnityEditor.Handles.color = Color.yellow;
+        UnityEditor.Handles.DrawDottedLine(transform.position, uiPos, 4f);
+    }
+#endif
 }
