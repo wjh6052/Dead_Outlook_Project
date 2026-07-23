@@ -42,7 +42,7 @@ public class CameraController : MonoBehaviour
     {
         if (Mgr_Camera.Inst.Target == null) return;
 
-        transform.position = Mgr_Camera.Inst.Target.position + Mgr_Camera.Inst.TargetOffset;
+        transform.position = Mgr_Camera.Inst.Target.position;
     }
 
     public void Rotate(Vector2 look)

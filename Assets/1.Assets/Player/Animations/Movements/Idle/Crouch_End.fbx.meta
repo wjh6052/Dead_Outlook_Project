@@ -12,7 +12,7 @@ ModelImporter:
   internalIDToNameTable:
   - first:
       74: -4604361413613240070
-    second: Crouch_Stop
+    second: Crouch_End
   externalObjects: {}
   materials:
     materialImportMode: 2
@@ -41,7 +41,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Crouch_Stop
+      name: Crouch_End
       takeName: CrouchToIdle
       internalID: 0
       firstFrame: 0

@@ -1,99 +1,116 @@
 using UnityEngine;
 using KinematicCharacterController;
 
-public enum ESpeedType { Walk, Run }
+// 이동 속도 상태
+public enum ESpeedType
+{
+    Idle,  // 정지
+    Walk,  // 걷기
+    Run,   // 뛰기
+}
+
+// 자세 상태
+public enum EStanceType
+{
+    Stand,  // 서있음
+    Crouch, // 웅크림
+    Air,    // 공중
+}
 
 public class PlayerMovement : MonoBehaviour, ICharacterController
 {
-    #region 입력
-    public Vector2    MoveInput    { get; set; } // 이동 입력 (WASD)
-    public bool       bAim         { get; set; } // 조준 중 여부
-    public bool       bCrouchInput { get; set; } // 웅크리기 버튼 상태
+    #region 입력 (Mgr_PlayerController에서 매 프레임 설정)
+    public Vector2 MoveInput    { get; set; } // 이동 입력 (WASD)
+    public bool    bRunInput    { get; set; } // 달리기 버튼
+    public bool    bJump        { get; set; } // 점프 버튼
+    public bool    bAim         { get; set; } // 조준 버튼
+    public bool    bCrouchInput { get; set; } // 웅크리기 버튼
 
-    private bool _bJump;
-    private bool _bJumpRaw; // 상승 엣지 감지를 위한 raw 입력값
-    public bool bJump
-    {
-        get => _bJump;
-        set { _bJumpRaw = value; _bJump = value && bIsGrounded; } // 지면에 있을 때만 true 허용
-    }
     #endregion
 
-
     #region 상태
-    public ESpeedType SpeedType    { get; set; }          // 현재 이동 속도 타입 (Walk/Run)
-    public bool       bIsGrounded  { get; private set; }  // 지면 접촉 여부
-    public bool       bIsCrouching { get; private set; }  // 웅크린 상태 여부
+    [field: SerializeField] public float CurrentSpeed { get; private set; } // 현재 이동 속도 (m/s)
+    [field: SerializeField] public EStanceType StanceType   { get; private set; } // 자세 상태 (Stand / Crouch / Air)
+    [field: SerializeField] public ESpeedType  SpeedType    { get; private set; } // 이동 속도 상태 (Idle / Walk / Run)
+    [field: SerializeField] public bool        bIsGrounded  { get; private set; } // 지면 접촉 여부
+    
     #endregion
 
 
     [Header("이동")]
-    [Tooltip("걷기 이동 속도 (m/s)")]
-    [SerializeField] private float WalkSpeed = 5f;
-    [Tooltip("달리기 이동 속도 (m/s)")]
-    [SerializeField] private float RunSpeed = 8f;
-    [Tooltip("출발·방향전환 가속도 (m/s²) — 높을수록 빠르게 목표 속도에 도달")]
-    [SerializeField] private float MoveAcceleration = 10f;
-    [Tooltip("이동 방향으로 회전하는 속도 (높을수록 즉각 회전)")]
-    [SerializeField] private float RotationSpeed = 10f;
+    [SerializeField] private float WalkSpeed  = 3f; // 걷기 이동 속도 (m/s)
+    [SerializeField] private float RunSpeed   = 5f; // 달리기 이동 속도 (m/s)
 
     [Header("웅크리기")]
-    [Tooltip("웅크리기 이동 속도 (m/s)")]
-    [SerializeField] private float CrouchSpeed = 2f;
-    [Tooltip("기립 시 캡슐 높이 (m)")]
-    [SerializeField] private float StandHeight = 2f;
-    [Tooltip("웅크리기 시 캡슐 높이 (m)")]
-    [SerializeField] private float CrouchHeight = 1f;
-    [Tooltip("웅크리기 전환 시 이동 불가 시간 (초)")]
-    [SerializeField] private float CrouchTransitionDuration = 0.5f;
+    [SerializeField] private float CrouchSpeed    = 2f; // 웅크리며 걷는 속도 (m/s)
+    [SerializeField] private float CrouchRunSpeed = 3f; // 웅크리며 뛰는 속도 (m/s)
+    [SerializeField] private float StandHeight  = 2f; // 기립 시 캡슐 높이 (m)
+    [SerializeField] private float CrouchHeight = 1f; // 웅크리기 시 캡슐 높이 (m)
 
     [Header("점프")]
-    [Tooltip("점프 시 적용되는 수직 힘")]
-    [SerializeField] private float JumpForce = 3.5f;
+    [SerializeField] private float JumpForce = 5f; // 점프 시 위로 가해지는 힘
+
+    [Header("회전")]
+    [SerializeField] private float RotationSpeed = 15f; // 캐릭터 회전 속도 — 높을수록 즉각 회전
+
+    private bool bPrevCrouch; // 이전 프레임 웅크리기 버튼 상태 — 상승 엣지 감지용
+    private bool bPrevJump;   // 이전 프레임 점프 버튼 상태 — 상승 엣지 감지용
+    [HideInInspector] public bool doJump; // 이번 프레임 점프 실행 플래그
 
 
-    // 상승 엣지 감지 및 이동 내부 상태
-    private bool    bPrevCrouchInput;    // 이전 프레임 웅크리기 버튼 상태 — 상승 엣지 감지용
-    private bool    bPrevJumpInput;      // 이전 프레임 점프 버튼 상태 — 상승 엣지 감지용
-    private Vector3 HorizontalVelocity;  // 수평 속도 벡터 — 관성 계산에 사용
-    private float   CurrentSpeed;        // 현재 실제 이동 속도
-    private float   CrouchTransitionTimer; // 웅크리기 전환 중 속도 감소 타이머
-
-
-    #region 디버그 (읽기 전용)
-    [Header("디버그 (읽기 전용)")]
-    [SerializeField] private Vector2    Debug_MoveInput;
-    [SerializeField] private bool       Debug_Jump;
-    [SerializeField] private ESpeedType Debug_SpeedType;
-    [SerializeField] private float      Debug_CurrentSpeed;
-    [SerializeField] private bool       Debug_IsGrounded;
-    [SerializeField] private bool       Debug_IsAim;
-    [SerializeField] private bool       Debug_IsCrouching;
-    #endregion
-
-
-    private KinematicCharacterMotor KCCMotor; // KCC 물리 처리 컴포넌트
+    private Entity_Player           Player;   // 플레이어 엔티티
+    private KinematicCharacterMotor KCC;      // KCC 물리 처리 컴포넌트
+    private PlayerAnimator          Animator; // 애니메이터 — AfterCharacterUpdate에서 값 전달
 
     private void Awake()
     {
-        KCCMotor = GetComponent<KinematicCharacterMotor>();
-        KCCMotor.CharacterController = this;
+        Player   = GetComponent<Entity_Player>();
+        KCC      = GetComponent<KinematicCharacterMotor>();
+        Animator = GetComponent<PlayerAnimator>();
+        KCC.CharacterController = this; // KCC가 이 스크립트를 컨트롤러로 사용하도록 등록
     }
 
-    // 현재 속도를 최대 속도 기준으로 0~1로 정규화 — 애니메이터 Speed 파라미터에 사용
-    public float GetNormalizedSpeed()
+    // 웅크리기 토글 — 조건 확인 후 SetCrouch 호출
+    private void TryToggleCrouch()
     {
-        float maxSpeed = bIsCrouching ? CrouchSpeed
-            : SpeedType == ESpeedType.Run ? RunSpeed
-            : WalkSpeed;
-        return Mathf.Clamp01(CurrentSpeed / maxSpeed);
+        if (StanceType != EStanceType.Crouch)
+            SetCrouch(true);
+        else if (CanStandUp())
+            SetCrouch(false);
+    }
+
+    // 웅크리기 상태 설정 — 캡슐 크기·StanceType·카메라 높이 일괄 처리
+    private void SetCrouch(bool isCrouching)
+    {
+        if (isCrouching)
+        {
+            StanceType = EStanceType.Crouch;
+            KCC.SetCapsuleDimensions(KCC.Capsule.radius, CrouchHeight, CrouchHeight * 0.5f);
+        }
+        else
+        {
+            StanceType = EStanceType.Stand;
+            KCC.SetCapsuleDimensions(KCC.Capsule.radius, StandHeight, StandHeight * 0.5f);
+        }
+        Player.SetCrouching(isCrouching);
+    }
+
+    // 머리 위 공간 확인 — 캡슐 캐스트로 일어설 공간이 있는지 검사
+    private bool CanStandUp()
+    {
+        float   r      = KCC.Capsule.radius;
+        Vector3 bottom = KCC.TransientPosition + Vector3.up * r;           // 캡슐 하단 구체 중심
+        Vector3 top    = KCC.TransientPosition + Vector3.up * (StandHeight - r); // 캡슐 상단 구체 중심
+        int     mask   = ~(1 << gameObject.layer);                         // 자기 자신 레이어 제외
+        return !Physics.CheckCapsule(bottom, top, r - 0.01f, mask, QueryTriggerInteraction.Ignore);
     }
 
     // 카메라 방향 기준으로 이동 입력을 월드 방향으로 변환
     public Vector3 GetDesiredMoveDirection()
     {
-        if (MoveInput.sqrMagnitude < 0.01f) return Vector3.zero;
+        if (MoveInput.sqrMagnitude < 0.01f) return Vector3.zero; // 입력 없으면 zero 반환
 
+        // 카메라의 forward/right를 수평면에 투영해 Y축 회전만 반영
         Transform cam     = Camera.main.transform;
         Vector3   forward = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
         Vector3   right   = Vector3.ProjectOnPlane(cam.right,   Vector3.up).normalized;
@@ -101,135 +118,103 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         return (forward * MoveInput.y + right * MoveInput.x).normalized;
     }
 
-    // 웅크리기 토글 — 앉기/일어서기 시 KCC 캡슐 높이 조정
-    private void TryToggleCrouch()
-    {
-        if (!bIsCrouching)
-        {
-            bIsCrouching = true;
-            KCCMotor.SetCapsuleDimensions(KCCMotor.Capsule.radius, CrouchHeight, CrouchHeight * 0.5f);
-            CrouchTransitionTimer = CrouchTransitionDuration;
-        }
-        else if (CanStandUp())
-        {
-            bIsCrouching = false;
-            KCCMotor.SetCapsuleDimensions(KCCMotor.Capsule.radius, StandHeight, StandHeight * 0.5f);
-            CrouchTransitionTimer = CrouchTransitionDuration;
-        }
-    }
 
-    // 머리 위 장애물 확인 — 일어설 공간이 있으면 true
-    private bool CanStandUp()
-    {
-        float   r      = KCCMotor.Capsule.radius;
-        Vector3 bottom = KCCMotor.TransientPosition + Vector3.up * r;
-        Vector3 top    = KCCMotor.TransientPosition + Vector3.up * (StandHeight - r);
-        int     mask   = ~(1 << gameObject.layer);
-        return !Physics.CheckCapsule(bottom, top, r - 0.01f, mask, QueryTriggerInteraction.Ignore);
-    }
-
-
-    #region KCC 매 프레임 호출
-    // KCC 업데이트 전 호출 — 웅크리기 토글 및 점프 상승 엣지 처리
+    #region KCC — 매 프레임 호출
+    // KCC 업데이트 전 호출 — 입력 전처리, 상태 변경 등 선행 작업
     public void BeforeCharacterUpdate(float deltaTime)
     {
-        if (bCrouchInput && !bPrevCrouchInput)
-            TryToggleCrouch();
-        bPrevCrouchInput = bCrouchInput;
+        // 웅크리기 — 버튼을 누른 첫 프레임(상승 엣지)에만 토글
+        if (bCrouchInput && !bPrevCrouch) TryToggleCrouch();
+        bPrevCrouch = bCrouchInput;
 
-        _bJump         = _bJump && !bPrevJumpInput; // 상승 엣지만 처리 (지면 체크는 setter에서)
-        bPrevJumpInput = _bJumpRaw;
+        // 점프 — 지면에 있고 버튼을 누른 첫 프레임에만 실행
+        doJump    = bJump && bIsGrounded && !bPrevJump;
+        bPrevJump = bJump;
 
-        if (CrouchTransitionTimer > 0f)
-            CrouchTransitionTimer -= deltaTime;
+        // 이동 속도 상태 결정
+        if      (MoveInput.sqrMagnitude < 0.01f) SpeedType = ESpeedType.Idle;
+        else if (bRunInput)                       SpeedType = ESpeedType.Run;
+        else                                      SpeedType = ESpeedType.Walk;
     }
 
-    // 캐릭터 속도 결정 (지면이면 이동속도 적용, 공중이면 중력 누적)
+    // 캐릭터 속도 결정 — 이동·점프·중력 등 currentVelocity 값을 직접 설정
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
-        if (KCCMotor.GroundingStatus.IsStableOnGround)
+        if (KCC.GroundingStatus.IsStableOnGround)
         {
-            float targetSpeed = bIsCrouching ? CrouchSpeed
-                : SpeedType == ESpeedType.Run ? RunSpeed
-                : WalkSpeed;
-
-            if (CrouchTransitionTimer > 0f)
-                targetSpeed = 0f;
-
-            Vector3 targetVel = GetDesiredMoveDirection() * targetSpeed;
-
-            if (targetVel.sqrMagnitude < 0.01f)
-                HorizontalVelocity = Vector3.zero;
-            else
-                HorizontalVelocity = Vector3.MoveTowards(HorizontalVelocity, targetVel, MoveAcceleration * deltaTime);
-            CurrentSpeed = HorizontalVelocity.magnitude;
-
-            currentVelocity = new Vector3(HorizontalVelocity.x, 0f, HorizontalVelocity.z);
-
-            if (bJump)
+            // 자세 + 속도 상태 조합으로 현재 속도 결정
+            CurrentSpeed = (StanceType, SpeedType) switch
             {
-                if (bIsCrouching)
-                    TryToggleCrouch(); // 앉은 상태면 일어서기만
+                (EStanceType.Crouch, ESpeedType.Run)  => CrouchRunSpeed,
+                (EStanceType.Crouch, ESpeedType.Walk) => CrouchSpeed,
+                (_,                  ESpeedType.Run)  => RunSpeed,
+                (_,                  ESpeedType.Walk) => WalkSpeed,
+                _                                     => 0f,
+            };
+            currentVelocity = GetDesiredMoveDirection() * CurrentSpeed;
+
+            if (doJump)
+            {
+                if (StanceType == EStanceType.Crouch) TryToggleCrouch(); // 웅크린 상태면 일어서기만
                 else
                 {
-                    KCCMotor.ForceUnground();
-                    currentVelocity += Vector3.up * JumpForce;
+                    KCC.ForceUnground();                       // KCC의 지면 고정 해제
+                    currentVelocity += Vector3.up * JumpForce; // 위로 힘 적용
                 }
             }
         }
         else
         {
-            currentVelocity  = new Vector3(HorizontalVelocity.x, currentVelocity.y, HorizontalVelocity.z);
+            // 공중 — 중력 누적
             currentVelocity += Physics.gravity * deltaTime;
         }
     }
 
-    // 캐릭터 회전 결정
+    // 캐릭터 회전 결정 — currentRotation 값을 직접 설정
     public void UpdateRotation(ref Quaternion currentRotation, float deltaTime)
     {
-        if (bAim)
-        {
-            Vector3 camForward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up);
-            if (camForward.sqrMagnitude < 0.01f) return;
-            currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(camForward), RotationSpeed * deltaTime);
-        }
-        else
-        {
-            Vector3 moveDir = GetDesiredMoveDirection();
-            if (moveDir.sqrMagnitude < 0.01f) return;
-            currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(moveDir), RotationSpeed * deltaTime);
-        }
+        // 조준 중이면 카메라 방향, 아니면 이동 방향으로 회전
+        Vector3 lookDir = bAim ? Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up)
+                               : GetDesiredMoveDirection();
+        if (lookDir.sqrMagnitude < 0.01f) return; // 방향이 없으면 회전 안 함
+        currentRotation = Quaternion.Slerp(currentRotation, Quaternion.LookRotation(lookDir), RotationSpeed * deltaTime);
     }
 
-    // 착지 판정 후 호출 — 점프/중력 상태 처리
+    // 착지 판정 직후 호출 — 착지 이벤트 처리 (사운드, 이펙트 등)
     public void PostGroundingUpdate(float deltaTime) { }
 
-    // KCC 업데이트 후 호출 — 후처리
+    // KCC 업데이트 후 호출 — 상태 갱신, 디버그 값 반영 등 후처리
     public void AfterCharacterUpdate(float deltaTime)
     {
-        bIsGrounded = KCCMotor.GroundingStatus.IsStableOnGround;
+        bIsGrounded = KCC.GroundingStatus.IsStableOnGround;
 
-        Debug_MoveInput    = MoveInput;
-        Debug_Jump         = bJump;
-        Debug_SpeedType    = SpeedType;
-        Debug_CurrentSpeed = CurrentSpeed;
-        Debug_IsGrounded   = bIsGrounded;
-        Debug_IsAim        = bAim;
-        Debug_IsCrouching  = bCrouchInput;
+        // 공중이면 Air, 방금 착지했으면 Stand로 복귀
+        if (!bIsGrounded)
+        {
+            if (StanceType == EStanceType.Crouch) SetCrouch(false); // 웅크린 채로 공중 진입 시 즉시 일어서기
+            StanceType = EStanceType.Air;
+        }
+        else if (StanceType == EStanceType.Air) SetCrouch(false);
+
+        Animator.UpdateAnimator(StanceType, SpeedType, bIsGrounded, bAim, doJump, MoveInput);
     }
     #endregion
 
 
-    #region KCC 콜백 (당장 불필요)
-    // 특정 콜라이더와 충돌할지 여부 결정 — false 반환 시 통과 (ex. 아군 관통)
+    #region KCC — 충돌 콜백
+    // 특정 콜라이더와 충돌할지 여부 — false 반환 시 통과 (예: 아군 관통)
     public bool IsColliderValidForCollisions(Collider coll) { return true; }
-    // 바닥 착지 시 호출 (ex. 착지 사운드, 이펙트)
+
+    // 바닥 착지 시 호출 — 착지 사운드, 이펙트 등
     public void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport) { }
-    // 이동 중 벽/장애물 충돌 시 호출 (ex. 충돌 사운드, 속도 감소)
+
+    // 이동 중 벽·장애물 충돌 시 호출 — 충돌 사운드, 속도 감소 등
     public void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport) { }
-    // 충돌 안정성 커스터마이징 — 경사면을 바닥으로 인정할지 여부 등
+
+    // 충돌 안정성 커스터마이징 — 경사면을 바닥으로 인정할지 등
     public void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport) { }
-    // 이동 외 물리 충돌 감지 시 호출 (ex. 날아오는 물체에 맞았을 때)
+
+    // 이동 외 물리 충돌 감지 시 호출 — 날아오는 물체에 맞았을 때 등
     public void OnDiscreteCollisionDetected(Collider hitCollider) { }
     #endregion
 }

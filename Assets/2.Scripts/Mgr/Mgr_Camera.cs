@@ -12,7 +12,6 @@ public class Mgr_Camera : MonoBehaviour
     public CameraController CameraController { get; private set; }
 
     public Transform Target       { get; private set; }
-    public Vector3   TargetOffset { get; private set; }
 
 
     public static Mgr_Camera Inst { get; private set; }
@@ -28,10 +27,9 @@ public class Mgr_Camera : MonoBehaviour
         CameraController = cameraController;
     }
 
-    public void SetTarget(Transform target, Vector3 targetOffset)
+    public void SetTarget(Transform target)
     {
         Target       = target;
-        TargetOffset = targetOffset;
     }
 
     public void SetCursorLock(bool isLocked)

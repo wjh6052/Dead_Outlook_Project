@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 
@@ -17,7 +18,31 @@ public class Mgr_PlayerController : MonoBehaviour
         Inst = this;
     }
 
-    
+    private IEnumerator Start()
+    {
+        // 모든 Start() 완료 후 실행되도록 한 프레임 대기
+        yield return null;
+
+        Mgr_Camera.Inst.SetTarget(Player.CameraTarget);
+    }
+
+    private void Update()
+    {
+        if (Mgr_Game.Inst.GameState == EGameState.Play)
+        {
+            // 카메라 움직임
+            Mgr_Camera.Inst.CameraController.Rotate(Mgr_Input.Inst.Look);
+
+            Player.Movement.MoveInput    = Mgr_Input.Inst.Move;
+            Player.Movement.bJump        = Mgr_Input.Inst.Jump;
+            Player.Movement.bAim         = Mgr_Input.Inst.Aim;
+            Player.Movement.bRunInput    = Mgr_Input.Inst.Run;
+            Player.Movement.bCrouchInput = Mgr_Input.Inst.Crouch;
+
+            UpdateInteractables();
+        }
+    }
+
 
     // 인벤토리 창 열기/닫기 Mgr_Input에서 Tab키를 눌렀을 경우 호출
     public void OnInventory()
@@ -67,23 +92,6 @@ public class Mgr_PlayerController : MonoBehaviour
         }
     }
 
-
-    private void Update()
-    {
-        if (Mgr_Game.Inst.GameState == EGameState.Play)
-        {
-            // 카메라 움직임
-            Mgr_Camera.Inst.CameraController.Rotate(Mgr_Input.Inst.Look);
-
-            Player.Movement.MoveInput    = Mgr_Input.Inst.Move;
-            Player.Movement.bJump        = Mgr_Input.Inst.Jump;
-            Player.Movement.bAim         = Mgr_Input.Inst.Aim;
-            Player.Movement.SpeedType    = Mgr_Input.Inst.Run ? ESpeedType.Run : ESpeedType.Walk;
-            Player.Movement.bCrouchInput = Mgr_Input.Inst.Crouch;
-
-            UpdateInteractables();
-        }
-    }
 
     // 시야 상태 갱신 + 레이캐스트 포커스 탐색
     private void UpdateInteractables()

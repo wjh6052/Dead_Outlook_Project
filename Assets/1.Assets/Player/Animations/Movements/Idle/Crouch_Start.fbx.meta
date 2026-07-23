@@ -44,7 +44,7 @@ ModelImporter:
       name: Crouch_Start
       takeName: IdleToCrouch
       internalID: -5809348377566599811
-      firstFrame: 4.8
+      firstFrame: 0
       lastFrame: 20
       wrapMode: 0
       orientationOffsetY: 0
