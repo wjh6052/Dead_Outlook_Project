@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public enum EGameState
 {
@@ -23,7 +24,22 @@ public class Mgr_Game : MonoBehaviour
 
     private void Update()
     {
-        
+        // 테스트
+        {
+            // 플레이어에게 데미지
+            if (Keyboard.current.tKey.wasPressedThisFrame)
+                Character_Player.Inst?.TakeDamage(10f);
+
+            // 플레이어의 위치에 아이템 생성
+            if (Keyboard.current.yKey.wasPressedThisFrame)
+            {
+                Item item = Mgr_Item.Inst.GetItem("Test_1");
+                Vector3 pos = Mgr_PlayerController.Inst.Player.transform.position;
+                pos.y += 1f;
+                Mgr_Item.Inst.SpawnItem(item, pos);
+            }
+        }
+
     }
 
 

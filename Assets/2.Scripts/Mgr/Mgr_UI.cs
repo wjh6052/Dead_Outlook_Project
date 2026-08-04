@@ -34,16 +34,19 @@ public class Mgr_UI : MonoBehaviour
     [SerializeField] public float SlotCellSize = 63f;
     [SerializeField] public float SlotSpacing  = 2f;
 
-    [Header("Interact UI")]
-    [SerializeField] public WUI_Interact InteractUI;
+    [Header("상호작용 WUI")]
+    public WUI_Interact InteractWUI { get; private set; }
+
+
+    [Header("플레이어 인벤토리UI")]
+    [SerializeField] public UI_Inventory UI_Inventory_Player;           // 인벤토리 패널
+
 
     [Header("변수")]
     public bool IsOnUI = false;
-    
 
 
     public Canvas MainCanvas { get; private set; } // 메인 UI 캔버스
-    public UI_Inventory Inventory_Panel { get; private set; }       // 인벤토리 패널
 
     private UI_ContextMenu  CurrentContextMenu; // 현재 열린 컨텍스트 메뉴
     private List<UI_Window> OpenWindows = new List<UI_Window>(); // 열려있는 창 목록
@@ -59,10 +62,9 @@ public class Mgr_UI : MonoBehaviour
 
     private void Awake()
     {
-        Inst              = this;
-        MainCanvas        = GameObject.FindWithTag("MainCanvas").GetComponent<Canvas>();
-        Inventory_Panel   = MainCanvas.transform.Find("UI_Inventory").GetComponent<UI_Inventory>();
-        InteractUI = Instantiate(Resources.Load<WUI_Interact>("Prefab/WUI/PF_WUI_Interact"));
+        Inst       = this;
+        MainCanvas = GameObject.FindWithTag("MainCanvas").GetComponent<Canvas>();
+        InteractWUI = Instantiate(Resources.Load<WUI_Interact>("Prefab/WUI/PF_WUI_Interact"));
 
         //UI 프리팹
         {
@@ -71,19 +73,18 @@ public class Mgr_UI : MonoBehaviour
             WindowPrefab = Resources.Load<UI_Window>("Prefab/UI/Window/PF_UI_Window");
         }
 
-        if (Inventory_Panel.gameObject.activeSelf)
-            Inventory_Panel.gameObject.SetActive(false);
+        if (UI_Inventory_Player.gameObject.activeSelf)
+            UI_Inventory_Player.gameObject.SetActive(false);
+    }
+
+    private void Start()
+    {
+        UI_Inventory_Player.Setup();
     }
 
     private void Update()
     {
-        if (UnityEngine.InputSystem.Keyboard.current.tKey.wasPressedThisFrame)
-        {
-            Item item = Mgr_Item.Inst.GetItem("Test_1");
-            Vector3 pos = Mgr_PlayerController.Inst.Player.transform.position;
-            pos.y += 1f;
-            Mgr_Item.Inst.SpawnItem(item, pos);
-        }
+
     }
 
 
@@ -92,8 +93,8 @@ public class Mgr_UI : MonoBehaviour
     public void OnInventory(bool isOn)
     {
         IsOnUI = isOn;
-        Inventory_Panel.gameObject.SetActive(isOn);
-        if (IsOnUI == true) Inventory_Panel.Init();
+        UI_Inventory_Player.gameObject.SetActive(isOn);
+        if (IsOnUI == true) UI_Inventory_Player.Init();
         else
         {
             foreach (UI_Window window in OpenWindows)
@@ -113,7 +114,7 @@ public class Mgr_UI : MonoBehaviour
     // 상호작용 UI 표시 / 숨김
     public void ShowInteractUI(bool show, Interactable target = null)
     {
-        InteractUI?.Show(show, target);
+        InteractWUI?.Show(show, target);
     }
 
     // 컨텍스트 메뉴 표시 — 기존 메뉴 닫고 새로 스폰

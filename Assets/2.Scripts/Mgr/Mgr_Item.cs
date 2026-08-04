@@ -38,13 +38,15 @@ public class Mgr_Item : MonoBehaviour
         }
 
         GameObject go = Instantiate(item.Prefab, pos, Quaternion.identity);
-        Interactable_Item worldItem = go.AddComponent<Interactable_Item>();
+        Interactable_Item worldItem = go.GetComponent<Interactable_Item>() ?? go.AddComponent<Interactable_Item>();
         worldItem.Init(item, pos);
     }
 
 
     // ERarity에 해당하는 색상 반환
     public Color GetRarityColor(ERarity rarity) => RarityColors[(int)rarity];
+
+    public IEnumerable<Item> GetAllItems() => Items.Values;
 
     // ID로 아이템 반환
     public Item GetItem(string id)
@@ -101,6 +103,13 @@ public class Mgr_Item : MonoBehaviour
                                         dto.Weight, dto.MaxStack, dto.TileSizeX, dto.TileSizeY, icon, prefab,
                                         containerType, dto.GridWidth, dto.GridHeight);
                     break;
+                case EItemType.WeaponMelee:
+                    EWeaponType      weaponType      = Enum.Parse<EWeaponType>(dto.WeaponType);
+                    EWeaponMeleeType weaponMeleeType = Enum.Parse<EWeaponMeleeType>(dto.WeaponMeleeType);
+                    item = new Item_Weapon_Melee(rarity, dto.ID, dto.Name, dto.Description,
+                                        dto.Weight, dto.TileSizeX, dto.TileSizeY, icon, prefab,
+                                        weaponType, weaponMeleeType, dto.Damage, dto.AttackSpeed);
+                    break;
                 default:
                     item = new Item(itemType, rarity, dto.ID, dto.Name, dto.Description,
                                     dto.Weight, dto.MaxStack, dto.TileSizeX, dto.TileSizeY, icon, prefab);
@@ -136,7 +145,7 @@ public class Mgr_Item : MonoBehaviour
             }
         }
 
-        Debug.Log("아이템 로드 완료");
+        //Debug.Log("아이템 로드 완료");
     }
 
     #endregion

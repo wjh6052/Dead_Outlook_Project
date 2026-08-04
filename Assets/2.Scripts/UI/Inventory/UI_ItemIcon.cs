@@ -31,18 +31,20 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     CanvasGroup CG; // 드래그 시 레이캐스트 제어용
     #endregion
 
-    private void Awake()
-    {
-        IconBack_Image = transform.Find("IconBack_Image").GetComponent<Image>();
-        Icon_Image     = transform.Find("Icon_Image").GetComponent<Image>();
-        Icon_Visual    = Icon_Image.GetComponent<RectTransform>();
-        Amount_TMP     = transform.Find("Amount_TMP").GetComponent<TextMeshProUGUI>();
-        CG             = GetComponent<CanvasGroup>();
-    }
 
     // 아이콘 생성 시 호출
     public void Init(Item item, UI_ItemGrid inventory, UI_EquipSlot equipSlot = null)
     {
+        // 컴포넌트 설정
+        {
+            IconBack_Image = transform.Find("IconBack_Image").GetComponent<Image>();
+            Icon_Image = transform.Find("Icon_Image").GetComponent<Image>();
+            Icon_Visual = Icon_Image.GetComponent<RectTransform>();
+            Amount_TMP = transform.Find("Amount_TMP").GetComponent<TextMeshProUGUI>();
+            CG = GetComponent<CanvasGroup>();
+        }
+
+
         ItemData   = item;
         Inventory  = inventory;
         EquipSlot  = equipSlot;
@@ -55,8 +57,11 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         rarityColor.a = 0.3f;
         IconBack_Image.color = rarityColor;
 
-        // 아이템 갯수 설정
-        Amount_TMP.text    = item.Amount.ToString();
+        // 수량 표시 — 무기/컨테이너/방어구는 숨김
+        bool noAmount = item.ItemType == EItemType.WeaponMelee  || item.ItemType == EItemType.WeaponRanged
+                     || item.ItemType == EItemType.Container    || item.ItemType == EItemType.Armor;
+        Amount_TMP.gameObject.SetActive(!noAmount);
+        Amount_TMP.text = item.Amount.ToString();
 
         SetRect(false);
     }

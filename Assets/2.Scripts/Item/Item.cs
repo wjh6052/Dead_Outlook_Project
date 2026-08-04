@@ -1,15 +1,22 @@
 using System;
 using UnityEngine;
 
+public enum EWeaponRangedType // 원거리 무기 종류 열거형
+{
+    Pistol, // 권총
+    Rifle,  // 소총
+}
+
 public enum EItemType // 아이템 타입 열거형
 {
-    General,    // 기타
-    Weapon,     // 무기
-    Armor,      // 방어구
-    Tool,       // 도구
-    Food,       // 음식
-    Medical,    // 의료
-    Container   // 컨테이너 (가방, 벨트, 상자 등)
+    General,      // 기타
+    WeaponMelee,  // 근접무기
+    WeaponRanged, // 원거리무기
+    Armor,        // 방어구
+    Tool,         // 도구
+    Food,         // 음식
+    Medical,      // 의료
+    Container     // 컨테이너 (가방, 벨트, 상자 등)
 }
 
 public enum ERarity // 희귀도 열거형

@@ -57,16 +57,27 @@ public class ItemDataFetcher : EditorWindow
                     TileSizeX   = int.Parse(cells[6].value),
                     TileSizeY   = int.Parse(cells[7].value),
                     IconKey     = "UI/Icon/"     + (cells.Count > 8 && !string.IsNullOrEmpty(cells[8].value) ? cells[8].value : "Icon_Temp"),
-                    PrefabKey   = "Prefab/Item/" + (cells.Count > 9 && !string.IsNullOrEmpty(cells[9].value) ? cells[9].value : "PF_TestItem"),
+                    PrefabKey   = cells.Count > 9 && !string.IsNullOrEmpty(cells[9].value)
+                                  ? $"Prefab/Item/{itemType}/{cells[9].value}"
+                                  : "Prefab/Item/PF_TestItem",
                 };
 
                 // 타입별 추가 필드
                 switch (itemType)
                 {
-                    case EItemType.Container: // 가방, 조끼, 케이스
+                    case EItemType.Container:
                         dto.ContainerType = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? cells[10].value : "Bag";
                         dto.GridWidth     = cells.Count > 11 ? int.Parse(cells[11].value) : 0;
                         dto.GridHeight    = cells.Count > 12 ? int.Parse(cells[12].value) : 0;
+                        break;
+                    case EItemType.WeaponMelee:
+                        dto.WeaponType      = "Melee";
+                        dto.WeaponMeleeType = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? cells[10].value : "Bat";
+                        dto.Damage          = cells.Count > 11 && !string.IsNullOrEmpty(cells[11].value) ? float.Parse(cells[11].value) : 0f;
+                        dto.AttackSpeed     = cells.Count > 12 && !string.IsNullOrEmpty(cells[12].value) ? float.Parse(cells[12].value) : 1f;
+                        break;
+                    case EItemType.WeaponRanged:
+                        dto.WeaponType = "Ranged";
                         break;
                 }
 

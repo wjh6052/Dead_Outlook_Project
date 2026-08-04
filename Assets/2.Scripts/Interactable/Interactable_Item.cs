@@ -9,12 +9,6 @@ public class Interactable_Item : Interactable
         ItemData = item;
         transform.position = pos;
         gameObject.layer = LayerMask.NameToLayer("Item");
-
-        MeshCollider col = gameObject.AddComponent<MeshCollider>();
-        col.sharedMesh   = GetComponent<MeshFilter>().sharedMesh;
-        col.convex       = true;
-
-        gameObject.AddComponent<Rigidbody>();
     }
 
     private void Start()

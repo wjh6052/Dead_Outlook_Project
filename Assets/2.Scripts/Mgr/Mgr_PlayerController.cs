@@ -9,8 +9,8 @@ public class Mgr_PlayerController : MonoBehaviour
     private Interactable FocusedInteractable;          // 현재 레이에 감지된 상호작용 오브젝트
     
     
-    public Entity_Player Player { get; private set; }
-    public void SetPlayer(Entity_Player player) { Player = player; }
+    public Character_Player Player { get; private set; }
+    public void SetPlayer(Character_Player player) { Player = player; }
     public static Mgr_PlayerController Inst { get; private set; }
 
     private void Awake()
@@ -18,11 +18,11 @@ public class Mgr_PlayerController : MonoBehaviour
         Inst = this;
     }
 
+    // 모든 Start() 완료 후 실행되도록 한 프레임 대기
     private IEnumerator Start()
     {
-        // 모든 Start() 완료 후 실행되도록 한 프레임 대기
         yield return null;
-
+        // 카메라를 플레이어에게 설정
         Mgr_Camera.Inst.SetTarget(Player.CameraTarget);
     }
 
@@ -40,6 +40,37 @@ public class Mgr_PlayerController : MonoBehaviour
             Player.Movement.bCrouchInput = Mgr_Input.Inst.Crouch;
 
             UpdateInteractables();
+        }
+    }
+
+    // 시야 상태 갱신 + 레이캐스트 포커스 탐색
+    private void UpdateInteractables()
+    {
+        Camera cam = Mgr_Camera.Inst.CameraController.MainCamera;
+        Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(cam);
+
+        foreach (Interactable interactable in Interactable.All)
+            interactable.UpdateViewState(cam, frustumPlanes);
+
+        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        Interactable hit = null;
+        float minDist = float.MaxValue;
+
+        foreach (RaycastHit hitInfo in Physics.RaycastAll(ray, InteractRange))
+        {
+            Interactable interactable = hitInfo.collider.GetComponentInParent<Interactable>();
+            if (interactable == null || interactable.IsDisabled) continue;
+            if (hitInfo.distance >= minDist) continue;
+
+            minDist = hitInfo.distance;
+            hit = interactable;
+        }
+
+        if (hit != FocusedInteractable)
+        {
+            if (FocusedInteractable != null) FocusedInteractable.OnLoseFocus();
+            FocusedInteractable = hit;
+            if (FocusedInteractable != null) FocusedInteractable.OnFocus();
         }
     }
 
@@ -83,7 +114,14 @@ public class Mgr_PlayerController : MonoBehaviour
     }
 
 
-    // 아이템 회전 / Mgr_Input에서 R키를 통해 
+    // 무기 슬롯 선택 / Mgr_Input에서 1·2·3키를 눌렀을 경우 호출
+    public void OnWeaponSlot(int slot)
+    {
+        if (Mgr_Game.Inst.GameState != EGameState.Play) return;
+        Player.OnWeaponSlot(slot);
+    }
+
+    // 아이템 회전 / Mgr_Input에서 R키를 통해
     public void OnRotateItem()
     {
         if(Mgr_UI.Inst.IsOnUI)
@@ -93,35 +131,7 @@ public class Mgr_PlayerController : MonoBehaviour
     }
 
 
-    // 시야 상태 갱신 + 레이캐스트 포커스 탐색
-    private void UpdateInteractables()
-    {
-        Camera  cam           = Mgr_Camera.Inst.CameraController.MainCamera;
-        Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(cam);
 
-        foreach (Interactable interactable in Interactable.All)
-            interactable.UpdateViewState(cam, frustumPlanes);
-
-        Ray          ray     = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        Interactable hit     = null;
-        float        minDist = float.MaxValue;
-
-        foreach (RaycastHit hitInfo in Physics.RaycastAll(ray, InteractRange))
-        {
-            if (!hitInfo.collider.CompareTag("Interactable")) continue;
-            if (hitInfo.distance >= minDist) continue;
-
-            minDist = hitInfo.distance;
-            hit = hitInfo.collider.GetComponent<Interactable>();
-        }
-
-        if (hit != FocusedInteractable)
-        {
-            if (FocusedInteractable != null) FocusedInteractable.OnLoseFocus();
-            FocusedInteractable = hit;
-            if (FocusedInteractable != null) FocusedInteractable.OnFocus();
-        }
-    }
 
 
 #if UNITY_EDITOR

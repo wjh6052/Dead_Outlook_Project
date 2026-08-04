@@ -23,49 +23,19 @@ public class Mgr_Input : MonoBehaviour
 
     }
     #region InputSystem
-    void OnMove(InputValue value)
-    {
-        Move = value.Get<Vector2>();
-    }
+    void OnMove(InputValue value)        => Move   = value.Get<Vector2>();
+    void OnLook(InputValue value)        => Look   = value.Get<Vector2>();
+    void OnJump(InputValue value)        => Jump   = value.isPressed;
+    void OnAim(InputValue value)         => Aim    = value.isPressed;
+    void OnRun(InputValue value)         => Run    = value.isPressed;
+    void OnCrouch(InputValue value)      => Crouch = value.isPressed;
 
-    void OnLook(InputValue value)
-    {
-        Look = value.Get<Vector2>();
-    }
+    void OnInventory(InputValue value)   => Mgr_PlayerController.Inst.OnInventory();
+    void OnInteractable(InputValue value)=> Mgr_PlayerController.Inst.OnInteractable();
+    void OnRotateItem(InputValue value)  => Mgr_PlayerController.Inst.OnRotateItem();
 
-    void OnJump(InputValue value)
-    {
-        Jump = value.isPressed;
-    }
-
-    void OnAim(InputValue value)
-    {
-        Aim = value.isPressed;
-    }
-
-    void OnRun(InputValue value)
-    {
-        Run = value.isPressed;
-    }
-
-    void OnCrouch(InputValue value)
-    {
-        Crouch = value.isPressed;
-    }
-
-    void OnInventory(InputValue value)
-    {
-        Mgr_PlayerController.Inst.OnInventory();
-    }
-
-    void OnInteractable(InputValue value)
-    {
-        Mgr_PlayerController.Inst.OnInteractable();
-    }
-
-    void OnRotateItem(InputValue value)
-    {
-        Mgr_PlayerController.Inst.OnRotateItem();
-    }
+    void OnWeaponSlot1(InputValue value) => Mgr_PlayerController.Inst.OnWeaponSlot(1);
+    void OnWeaponSlot2(InputValue value) => Mgr_PlayerController.Inst.OnWeaponSlot(2);
+    void OnWeaponSlot3(InputValue value) => Mgr_PlayerController.Inst.OnWeaponSlot(3);
     #endregion
 }
