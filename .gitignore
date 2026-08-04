@@ -105,3 +105,7 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# GSTU OAuth 인증 정보 — 커밋 금지
+/[Aa]ssets/9.ThirdParty/Google Sheets to Unity/Resources/GSTU_Config.asset
+/[Aa]ssets/9.ThirdParty/Google Sheets to Unity/Resources/GSTU_Config.asset.meta
