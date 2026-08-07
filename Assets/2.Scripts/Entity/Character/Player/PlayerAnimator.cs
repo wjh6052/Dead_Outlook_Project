@@ -1,5 +1,12 @@
 using UnityEngine;
 
+public enum EAnimatorLayer
+{
+    Base  = 0, // 이동, 대기
+    Upper = 1, // 무기 꺼내기, 조준 상체
+    Full  = 2, // 전신 공격, 공중, 앉기 시작
+}
+
 public class PlayerAnimator : MonoBehaviour
 {
     #region 설정
@@ -18,6 +25,7 @@ public class PlayerAnimator : MonoBehaviour
     private float        SmoothedMoveX;
     private float        SmoothedMoveZ;
     private EStanceType  PrevStanceType;
+    public  bool         IsAim { get; private set; }
     #endregion
 
     #region 파라미터 해시
@@ -77,6 +85,7 @@ public class PlayerAnimator : MonoBehaviour
         PrevStanceType = stanceType;
 
         // 상태 플래그
+        IsAim = isAim;
         Anim.SetBool(HashIsAim,      isAim);
         SmoothedStanceType = Mathf.MoveTowards(SmoothedStanceType, (float)stanceType, Time.deltaTime / StanceTypeDampTime);
         Anim.SetFloat(HashStanceType, SmoothedStanceType);
@@ -96,4 +105,28 @@ public class PlayerAnimator : MonoBehaviour
 
     public void PlayTakeWeapon()    => Anim.SetTrigger(HashTakeWeapon);
     public void PlayHolsterWeapon() => Anim.SetTrigger(HashHolsterWeapon);
+
+    // 지정한 레이어를 Empty 상태로 부드럽게 전환 — 애니메이션 종료 시 사용
+    public void PlayEmpty(EAnimatorLayer layer) => Anim.CrossFade("Empty", 0.2f, (int)layer);
+
+    public void PlayAttack(Item_Weapon weapon, int Combo)
+    {
+        string stateName = "";
+
+        switch (weapon.WeaponType)
+        {
+            case EWeaponType.Melee:
+                if (weapon is Item_Weapon_Melee melee)
+                    stateName = $"{melee.WeaponMeleeType}";
+                break;
+
+            case EWeaponType.Ranged:
+                break;
+        }
+
+        if (Anim.HasState((int)EAnimatorLayer.Full, Animator.StringToHash($"{stateName}_Attack_{Combo}")))
+            Anim.CrossFade($"{stateName}_Attack_{Combo}", 0.1f, (int)EAnimatorLayer.Full);
+        else
+            Debug.Log($"[{stateName}_Attack_{Combo}] 애니메이션이 없음");
+    }
 }

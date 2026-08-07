@@ -9,7 +9,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     [field: SerializeField] public float MaxHP { get; private set; } = 100f;
     [field: SerializeField] public float HP { get; private set; }
 
-    #endregion ---------------------------------------
+    #endregion 
 
 
     #region 카메라 ---------------------------------------
@@ -18,7 +18,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     public  float CameraCrouchHeight = 0.9f;
     public  float CameraHeightSpeed  = 10f;
     public Transform CameraTarget { get; private set; }
-    #endregion ---------------------------------------
+    #endregion 
 
 
     #region 컴포넌트 ---------------------------------------
@@ -28,7 +28,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     public InventoryComponent InventoryComp { get; private set; }
     
     public static Character_Player Inst { get; private set; }
-    #endregion ---------------------------------------
+    #endregion 
 
     private void Awake()
     {
@@ -48,7 +48,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     }
 
 
-    public void TakeDamage(float damage)
+    #region IDamageable ---------------------------------------
+
+    public void TakeDamage(float damage, GameObject attacker, GameObject attackerOwner)
     {
         HP = Mathf.Max(HP - damage, 0f);
         if (HP <= 0f) OnDeath();
@@ -64,8 +66,10 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         Debug.Log($"플레이어 죽음 / 현재 체력:{HP}");
     }
 
+    #endregion
 
-    #region 웅크림
+
+    #region 웅크림 ---------------------------------------
     // PlayerMovement에서 웅크림 상태 전달 — 카메라 높이 코루틴 시작
     public void SetCrouching(bool isCrouching)
     {
@@ -142,6 +146,71 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
             Animator.SetWeaponType(0, 0); // 맨손
     }
 
+
+    #endregion IInventory ---------------------------------------
+
+
+    [Header("콤보")]
+    public int  ComboCount = 0; // 현재 콤보 단계 (0 = 미공격, 1 = 첫 번째, 2 = 두 번째 ...)
+    public bool IsAttack = false; // 콤보 입력 윈도우가 열려있는지
+    public bool NextCombo = false; // 다음 콤보가 예약됐는지
+
+    // 공격 입력 — Mgr_PlayerController에서 호출
+    public void Attack()
+    {
+        if (CurrentWeapon == null) return;
+
+        if (IsAttack == false)
+        {
+            // 공격 중이 아님 → 첫 번째 공격 시작
+            IsAttack = true;
+            ComboCount = 1;
+            Animator.PlayAttack(CurrentWeapon.WeaponData, ComboCount);
+        }
+        else
+        {
+            // 콤보 윈도우 안에서 입력 → 다음 콤보 예약
+            NextCombo = true;
+        }
+        // CanCombo == false 인 동안의 입력은 무시
+    }
+
+
+    #region 애니메이션 이벤트 ---------------------------------------
+
+    // 공격 애니메이션 시작 프레임 이벤트로 호출
+    // → 콤보 입력 윈도우를 닫아 공격 시작 직후 연타 방지
+    public void OnAttackStart()
+    {
+
+    }
+
+    // 공격 애니메이션 중간 프레임 이벤트로 호출
+    // → 콤보 입력 윈도우를 열고, 이미 예약된 콤보가 있으면 즉시 다음 공격 실행
+    public void OnAttackCombo()
+    {
+        if (NextCombo == false) return;
+
+        // Attack()에서 미리 예약한 콤보 → 즉시 다음 공격
+        NextCombo = false;
+        ComboCount++;
+        Animator.PlayAttack(CurrentWeapon.WeaponData, ComboCount);
+    }
+
+    // 공격 애니메이션 끝 프레임 이벤트로 호출
+    // → OnAttackEnd가 호출됐다는 것은 OnAttackCombo에서 콤보가 이어지지 않았다는 의미 → 공격 종료
+    public void OnAttackEnd()
+    {
+        ComboCount = 0;
+        IsAttack = false;
+        NextCombo  = false;
+        Animator.PlayEmpty(EAnimatorLayer.Full);
+    }
+
+    // 애니메이션 이벤트 — "true": 히트박스 활성화 / "false": 히트박스 비활성화
+    public void OnCollider(string value) => (CurrentWeapon as Weapon_Melee)?.OnCollider(value == "true");
+
+
     // HolsterWeapon 애니메이션 끝 프레임 이벤트로 호출
     // → 손에 든 무기를 소켓으로 복귀 후 새 슬롯 장착
     public void OnHolsterEnd()
@@ -174,7 +243,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
             if (CurrentWeapon == null) return;
             CurrentWeapon.transform.SetParent(MeshComp.HandSocket_R, false);
 
-            int weaponType      = (int)CurrentWeapon.WeaponData.WeaponType + 1;
+            int weaponType = (int)CurrentWeapon.WeaponData.WeaponType + 1;
             int weaponMeleeType = CurrentWeapon.WeaponData is Item_Weapon_Melee melee ? (int)melee.WeaponMeleeType : 0;
             Animator.SetWeaponType(weaponType, weaponMeleeType);
 
@@ -198,8 +267,5 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     }
 
 
-    #endregion ---------------------------------------
-
-
-
+    #endregion 애니메이션 이벤트 ------------------------------------
 }

@@ -29,8 +29,8 @@ public class InventoryComponent : MonoBehaviour
 
         yield return null;
         // 테스트 — 방망이 장착
-        TryAddItem(Mgr_Item.Inst.GetItem("Test_Axe"));
         TryAddItem(Mgr_Item.Inst.GetItem("Test_Bet"));
+        TryAddItem(Mgr_Item.Inst.GetItem("Test_Axe"));
     }
 
 
@@ -58,7 +58,7 @@ public class InventoryComponent : MonoBehaviour
             {
                 // 아이템 프리팹을 WeaponSocket_1에 소환 후 Weapon 컴포넌트 초기화
                 Weapon_1 = Instantiate(item.Prefab, InventoryOwner.MeshComp.WeaponSocket_1).GetComponent<Weapon>();
-                Weapon_1.Init(item as Item_Weapon);
+                Weapon_1.Init(item as Item_Weapon, gameObject);
             }
         }
         else
@@ -71,7 +71,7 @@ public class InventoryComponent : MonoBehaviour
             {
                 // 아이템 프리팹을 WeaponSocket_2에 소환 후 Weapon 컴포넌트 초기화
                 Weapon_2 = Instantiate(item.Prefab, InventoryOwner.MeshComp.WeaponSocket_2).GetComponent<Weapon>();
-                Weapon_2.Init(item as Item_Weapon);
+                Weapon_2.Init(item as Item_Weapon, gameObject);
             }
         }
 

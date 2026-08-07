@@ -28,7 +28,7 @@ public class Mgr_Game : MonoBehaviour
         {
             // 플레이어에게 데미지
             if (Keyboard.current.tKey.wasPressedThisFrame)
-                Character_Player.Inst?.TakeDamage(10f);
+                Character_Player.Inst?.TakeDamage(10f, this.gameObject, this.gameObject);
 
             // 플레이어의 위치에 아이템 생성
             if (Keyboard.current.yKey.wasPressedThisFrame)

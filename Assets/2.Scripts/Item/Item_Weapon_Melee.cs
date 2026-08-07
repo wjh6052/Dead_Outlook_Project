@@ -2,8 +2,9 @@ using UnityEngine;
 
 public enum EWeaponMeleeType
 {
-    Bat, // 배트
-    Axe, // 도끼
+    Fist = 0, // 주먹
+    Bat  = 1, // 배트
+    Axe  = 2, // 도끼
 }
 
 [System.Serializable]

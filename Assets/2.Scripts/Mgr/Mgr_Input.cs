@@ -37,5 +37,7 @@ public class Mgr_Input : MonoBehaviour
     void OnWeaponSlot1(InputValue value) => Mgr_PlayerController.Inst.OnWeaponSlot(1);
     void OnWeaponSlot2(InputValue value) => Mgr_PlayerController.Inst.OnWeaponSlot(2);
     void OnWeaponSlot3(InputValue value) => Mgr_PlayerController.Inst.OnWeaponSlot(3);
+
+    void OnAttack(InputValue value)      => Mgr_PlayerController.Inst.OnAttack();
     #endregion
 }

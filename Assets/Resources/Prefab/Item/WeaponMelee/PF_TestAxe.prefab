@@ -266,7 +266,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8435942728221458102}
-  - component: {fileID: 7643341838427483881}
+  - component: {fileID: 2760404873301390851}
   - component: {fileID: 1028172085107513888}
   - component: {fileID: 2518980024791247597}
   m_Layer: 7
@@ -294,7 +294,7 @@ Transform:
   - {fileID: 6859125433423950695}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7643341838427483881
+--- !u!114 &2760404873301390851
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -303,9 +303,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7563782379765911804}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cdf93937ee26c549b728ccae91fb173, type: 3}
+  m_Script: {fileID: 11500000, guid: 734924b94dbba6748af734024b2cdf5e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Weapon_Bat
+  m_EditorClassIdentifier: Assembly-CSharp::Weapon_Melee
   WeaponData:
     <ItemType>k__BackingField: 0
     <Rarity>k__BackingField: 0
@@ -325,8 +325,8 @@ MonoBehaviour:
     <WeaponType>k__BackingField: 0
     <Damage>k__BackingField: 0
     <AttackSpeed>k__BackingField: 0
+  Owner: {fileID: 0}
   GripPoint_L: {fileID: 6859125433423950695}
-  DamageCollider: {fileID: 0}
 --- !u!114 &1028172085107513888
 MonoBehaviour:
   m_ObjectHideFlags: 0

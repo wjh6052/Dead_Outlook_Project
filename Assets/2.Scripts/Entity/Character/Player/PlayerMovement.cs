@@ -57,17 +57,26 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     private bool bPrevGrounded;  // 이전 프레임 지면 접촉 여부 — 착지 감지용
     [HideInInspector] public bool doJump; // 이번 프레임 점프 실행 플래그
 
+    private Vector3 RootMotionVelocity; // 루트 모션 속도 캐시 — OnAnimatorMove에서 갱신
 
     private Character_Player        Player;   // 플레이어 엔티티
     private KinematicCharacterMotor KCC;      // KCC 물리 처리 컴포넌트
     private PlayerAnimator          Animator; // 애니메이터 — AfterCharacterUpdate에서 값 전달
+    private Animator                Anim;     // Unity Animator — deltaPosition 접근용
 
     private void Awake()
     {
         Player   = GetComponent<Character_Player>();
         KCC      = GetComponent<KinematicCharacterMotor>();
         Animator = GetComponent<PlayerAnimator>();
+        Anim     = GetComponent<Animator>();
         KCC.CharacterController = this; // KCC가 이 스크립트를 컨트롤러로 사용하도록 등록
+    }
+
+    // Apply Root Motion 대신 Unity가 호출 — 루트 모션 델타를 KCC 속도로 변환해 캐싱
+    private void OnAnimatorMove()
+    {
+        RootMotionVelocity = Anim.deltaPosition / Time.deltaTime;
     }
 
     // 웅크리기 토글 — 조건 확인 후 SetCrouch 호출
@@ -142,6 +151,13 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     {
         if (KCC.GroundingStatus.IsStableOnGround)
         {
+            // 공격 중이면 루트 모션 속도 사용 — 애니메이션의 XZ 이동을 KCC에 전달
+            if (Player.IsAttack)
+            {
+                currentVelocity = RootMotionVelocity;
+                return;
+            }
+
             // 자세 + 속도 상태 조합으로 현재 속도 결정
             CurrentSpeed = (StanceType, SpeedType) switch
             {

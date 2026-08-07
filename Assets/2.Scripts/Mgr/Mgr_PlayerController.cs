@@ -121,6 +121,13 @@ public class Mgr_PlayerController : MonoBehaviour
         Player.OnWeaponSlot(slot);
     }
 
+    // 공격 / Mgr_Input에서 마우스 좌클릭 시 호출
+    public void OnAttack()
+    {
+        if (Mgr_Game.Inst.GameState != EGameState.Play) return;
+        Player.Attack();
+    }
+
     // 아이템 회전 / Mgr_Input에서 R키를 통해
     public void OnRotateItem()
     {
