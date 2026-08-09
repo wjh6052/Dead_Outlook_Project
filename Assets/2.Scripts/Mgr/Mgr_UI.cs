@@ -37,6 +37,9 @@ public class Mgr_UI : MonoBehaviour
     [Header("상호작용 WUI")]
     public WUI_Interact InteractWUI { get; private set; }
 
+    [Header("집중 타이머 UI")]
+    [SerializeField] public UI_FocusTimer FocusTimer;
+
 
     [Header("플레이어 인벤토리UI")]
     [SerializeField] public UI_Inventory UI_Inventory_Player;           // 인벤토리 패널
@@ -65,6 +68,8 @@ public class Mgr_UI : MonoBehaviour
         Inst       = this;
         MainCanvas = GameObject.FindWithTag("MainCanvas").GetComponent<Canvas>();
         InteractWUI = Instantiate(Resources.Load<WUI_Interact>("Prefab/WUI/PF_WUI_Interact"));
+
+        FocusTimer.gameObject.SetActive(false);
 
         //UI 프리팹
         {

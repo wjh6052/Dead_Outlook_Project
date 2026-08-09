@@ -79,6 +79,10 @@ public class ItemDataFetcher : EditorWindow
                     case EItemType.WeaponRanged:
                         dto.WeaponType = "Ranged";
                         break;
+                    case EItemType.Medical:
+                        dto.HealAmount = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? float.Parse(cells[10].value) : 0f;
+                        dto.UseTime    = cells.Count > 11 && !string.IsNullOrEmpty(cells[11].value) ? float.Parse(cells[11].value) : 0f;
+                        break;
                 }
 
                 DataList.Items.Add(dto);

@@ -34,10 +34,14 @@ public class UI_ContextMenu : MonoBehaviour
         transform.position = position;
 
         Item item = itemIcon.ItemData;
+        // 컨테이너(가방 등)만 열기 버튼 표시
         Btn_Opne.gameObject.SetActive(item.ItemType == EItemType.Container);
+        // 음식 / 의료 아이템만 사용 버튼 표시
         Btn_Use.gameObject.SetActive(item.ItemType == EItemType.Food || item.ItemType == EItemType.Medical);
+        // 무기·방어구·컨테이너는 분할 불가
         Btn_Split.gameObject.SetActive(item.ItemType != EItemType.WeaponMelee && item.ItemType != EItemType.WeaponRanged
                                     && item.ItemType != EItemType.Armor && item.ItemType != EItemType.Container);
+        // 수량이 1 이하면 분할 버튼 비활성화
         Btn_Split.interactable = item.Amount > 1;
     }
 
@@ -73,10 +77,13 @@ public class UI_ContextMenu : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // 사용 버튼 (구현예정)
+    // 사용 버튼
     private void OnUse()
     {
-        Debug.Log($"사용 버튼");
+        bool success = Character_Player.Inst.UseItem(TargetItemIcon.ItemData);
+        if (success) Mgr_PlayerController.Inst.OnInventory();
+
+        Destroy(gameObject);
     }
 
     // 분할 버튼

@@ -28,9 +28,8 @@ public class InventoryComponent : MonoBehaviour
         foreach (Transform child in InventoryOwner.MeshComp.WeaponSocket_2) Destroy(child.gameObject);
 
         yield return null;
-        // 테스트 — 방망이 장착
-        TryAddItem(Mgr_Item.Inst.GetItem("Test_Bet"));
-        TryAddItem(Mgr_Item.Inst.GetItem("Test_Axe"));
+        TryAddItem(Mgr_Item.Inst.GetItem("Test_Medical_1"));
+        TryAddItem(Mgr_Item.Inst.GetItem("Test_Medical_2"));
     }
 
 

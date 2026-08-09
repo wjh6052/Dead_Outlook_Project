@@ -26,17 +26,15 @@ public class Mgr_Game : MonoBehaviour
     {
         // 테스트
         {
-            // 플레이어에게 데미지
             if (Keyboard.current.tKey.wasPressedThisFrame)
-                Character_Player.Inst?.TakeDamage(10f, this.gameObject, this.gameObject);
+            {
+                Character_Player.Inst.IsFocusing = false;
+            }
 
-            // 플레이어의 위치에 아이템 생성
+            // 플레이어에게 데미지
             if (Keyboard.current.yKey.wasPressedThisFrame)
             {
-                Item item = Mgr_Item.Inst.GetItem("Test_1");
-                Vector3 pos = Mgr_PlayerController.Inst.Player.transform.position;
-                pos.y += 1f;
-                Mgr_Item.Inst.SpawnItem(item, pos);
+                Character_Player.Inst?.TakeDamage(10f, this.gameObject, this.gameObject);
             }
         }
 

@@ -66,7 +66,8 @@ public class Item
         Prefab      = prefab;
     }
 
-    public Action OnMoved; // 아이템이 다른 그리드로 이동할 때 호출
+    public Action OnMoved;         // 아이템이 다른 그리드로 이동할 때 호출
+    public Action OnAmountChanged; // 수량이 변경될 때 호출
 
     // 동일한 새 인스턴스 반환
     public virtual Item Copy() => (Item)MemberwiseClone();
@@ -100,6 +101,7 @@ public class Item
     public void DecreaseAmount(int amount)
     {
         Amount = Mathf.Max(Amount - amount, 0);
+        OnAmountChanged?.Invoke();
     }
 
     // 완전히 합칠 수 있는지 확인 (green)

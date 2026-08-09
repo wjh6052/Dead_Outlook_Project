@@ -27,6 +27,10 @@ public class ItemDataDTO
     public string WeaponMeleeType;
     public float  Damage;
     public float  AttackSpeed;
+
+    // Medical 전용
+    public float HealAmount;
+    public float UseTime;
 }
 
 [Serializable]

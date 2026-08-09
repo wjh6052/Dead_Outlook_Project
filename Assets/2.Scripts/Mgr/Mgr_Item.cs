@@ -110,6 +110,11 @@ public class Mgr_Item : MonoBehaviour
                                         dto.Weight, dto.TileSizeX, dto.TileSizeY, icon, prefab,
                                         weaponType, weaponMeleeType, dto.Damage, dto.AttackSpeed);
                     break;
+                case EItemType.Medical:
+                    item = new Item_Medical(rarity, dto.ID, dto.Name, dto.Description,
+                                    dto.Weight, dto.TileSizeX, dto.TileSizeY, icon, prefab,
+                                    dto.HealAmount, dto.UseTime);
+                    break;
                 default:
                     item = new Item(itemType, rarity, dto.ID, dto.Name, dto.Description,
                                     dto.Weight, dto.MaxStack, dto.TileSizeX, dto.TileSizeY, icon, prefab);

@@ -49,6 +49,9 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         Inventory  = inventory;
         EquipSlot  = equipSlot;
 
+        // 수량 변경 이벤트 구독
+        ItemData.OnAmountChanged += OnAmountChanged;
+
         // 아이템 아이콘 설정
         Icon_Image.sprite  = item.Icon;
 
@@ -137,6 +140,25 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
     // Amount_TMP 텍스트를 ItemData.Amount 기준으로 갱신
     public void UpdateAmount() => Amount_TMP.text = ItemData.Amount.ToString();
+
+    // 수량 변경 시 호출 — 수량 0이면 인벤토리에서 제거
+    private void OnAmountChanged()
+    {
+        if (ItemData.Amount <= 0)
+        {
+            Inventory.RemoveItem(this);
+            Destroy(gameObject);
+            return;
+        }
+        UpdateAmount();
+    }
+
+    private void OnDestroy()
+    {
+        // 오브젝트 파괴 시 이벤트 구독 해제 — 파괴 후 이벤트 호출 방지
+        if (ItemData != null)
+            ItemData.OnAmountChanged -= OnAmountChanged;
+    }
 
     // 드래그 중인 아이템이 가방이고, 해당 인벤토리가 자기 자신의 Inventory인지 확인
     private bool IsOwnInventory(UI_ItemGrid inventory)

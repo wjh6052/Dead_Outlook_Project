@@ -1,15 +1,22 @@
 using System.Collections;
 using UnityEngine;
 
+public enum EFocusType
+{
+    Medical, // 치료 중
+}
 
 public class Character_Player : MonoBehaviour, IDamageable, IInventory
 {
     #region 스텟 변수 ---------------------------------------
     [Header("스텟")]
-    [field: SerializeField] public float MaxHP { get; private set; } = 100f;
-    [field: SerializeField] public float HP { get; private set; }
+    [field: SerializeField] public float MaxHP      { get; private set; } = 100f;
+    [field: SerializeField] public float HP         { get; private set; }
+    public bool IsFocusing; // 아이템 사용 집중 중
+    public EFocusType FocusType { get; private set; } // 아이템 사용 집중 중
 
-    #endregion 
+
+    #endregion
 
 
     #region 카메라 ---------------------------------------
@@ -56,10 +63,73 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         if (HP <= 0f) OnDeath();
     }
 
+    // 아이템 사용 — 타입별로 처리, 사용 성공 시 true 반환
+    public bool UseItem(Item item)
+    {
+        switch (item.ItemType)
+        {
+            case EItemType.Food:
+                return true;
+            case EItemType.Medical:
+                if(MaxHP <= HP) return false;
+                Item_Medical medical = item as Item_Medical;
+                StartCoroutine(HealCoroutine(medical.HealAmount, medical.UseTime, item));
+                return true;
+        }
+
+        return false;
+    }
+
     public void Heal(float amount)
     {
         HP = Mathf.Min(HP + amount, MaxHP);
     }
+
+    // UseTime초 동안 집중 후 아이템 소모 + HealAmount만큼 회복
+    private IEnumerator HealCoroutine(float healAmount, float useTime, Item item)
+    {
+        yield return StartCoroutine(FocusCoroutine(EFocusType.Medical, useTime, () =>
+        {
+            item.DecreaseAmount(1);
+            Heal(healAmount);
+        }));
+    }
+
+    // useTime초 동안 집중 타이머 UI를 표시하고, 완료 시 onComplete 호출
+    // 도중에 IsFocusing이 false가 되면 취소
+    private IEnumerator FocusCoroutine(EFocusType focusType, float useTime, System.Action onComplete = null)
+    {
+        if (IsFocusing) yield break; // 이미 집중 중이면 취소
+
+        IsFocusing = true;
+        FocusType  = focusType;
+        Animator.UpdateFocus();
+
+        // 집중 타이머 UI 활성화
+        UI_FocusTimer focusTimer = Mgr_UI.Inst.FocusTimer;
+        focusTimer.gameObject.SetActive(true);
+        focusTimer.Init(useTime);
+
+        float elapsed = 0f;
+        while (elapsed < useTime)
+        {
+            if (!IsFocusing)                           // 외부에서 집중 취소 → UI 비활성 후 중단
+            {
+                focusTimer.gameObject.SetActive(false);
+                Animator.UpdateFocus();
+                yield break;
+            }
+            elapsed += Time.deltaTime;
+            focusTimer.UpdateTimer(useTime - elapsed, useTime);
+            yield return null;
+        }
+        focusTimer.gameObject.SetActive(false);
+        IsFocusing = false;
+        Animator.UpdateFocus();
+        onComplete?.Invoke();
+    }
+
+
 
     private void OnDeath()
     {
@@ -70,12 +140,14 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
 
     #region 웅크림 ---------------------------------------
+    private Coroutine LerpCameraCoroutine; // LerpCameraHeight 코루틴 참조
+
     // PlayerMovement에서 웅크림 상태 전달 — 카메라 높이 코루틴 시작
     public void SetCrouching(bool isCrouching)
     {
         float target = isCrouching ? CameraCrouchHeight : CameraStandHeight;
-        StopAllCoroutines();
-        StartCoroutine(LerpCameraHeight(target));
+        if (LerpCameraCoroutine != null) StopCoroutine(LerpCameraCoroutine);
+        LerpCameraCoroutine = StartCoroutine(LerpCameraHeight(target));
     }
 
     private IEnumerator LerpCameraHeight(float targetHeight)

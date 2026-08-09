@@ -42,6 +42,10 @@ public class PlayerAnimator : MonoBehaviour
     private int HashHolsterWeapon;
     private int HashWeaponType;
     private int HashWeaponMeleeType;
+    private int  HashIsFocusing;
+    private int  HashFocusType;
+    private int  HashOnFocusStart;
+    private bool PrevIsFocusing;
     #endregion
 
     private void Awake()
@@ -61,6 +65,9 @@ public class PlayerAnimator : MonoBehaviour
         HashHolsterWeapon   = Animator.StringToHash("HolsterWeapon");
         HashWeaponType      = Animator.StringToHash("WeaponType");
         HashWeaponMeleeType = Animator.StringToHash("WeaponMeleeType");
+        HashIsFocusing      = Animator.StringToHash("IsFocusing");
+        HashFocusType       = Animator.StringToHash("FocusType");
+        HashOnFocusStart    = Animator.StringToHash("OnFocusStart");
     }
 
     // PlayerMovement의 AfterCharacterUpdate에서 호출 — 애니메이터 파라미터 갱신
@@ -102,6 +109,21 @@ public class PlayerAnimator : MonoBehaviour
         Anim.SetFloat(HashWeaponMeleeType, weaponMeleeType);
     }
 
+
+    // Character_Player에서 IsFocusing, FocusType을 읽어 애니메이터 파라미터 갱신
+    // false → true 전환 시 OnFocusStart 트리거 발동
+    public void UpdateFocus()
+    {
+        bool isFocusing = Character_Player.Inst.IsFocusing;
+
+        if (!PrevIsFocusing && isFocusing)
+            Anim.SetTrigger(HashOnFocusStart);
+
+        Anim.SetBool(HashIsFocusing,  isFocusing);
+        Anim.SetFloat(HashFocusType, (float)Character_Player.Inst.FocusType);
+
+        PrevIsFocusing = isFocusing;
+    }
 
     public void PlayTakeWeapon()    => Anim.SetTrigger(HashTakeWeapon);
     public void PlayHolsterWeapon() => Anim.SetTrigger(HashHolsterWeapon);
