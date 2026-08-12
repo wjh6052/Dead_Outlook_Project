@@ -9,8 +9,7 @@ public class Mgr_PlayerController : MonoBehaviour
     private Interactable FocusedInteractable;          // 현재 레이에 감지된 상호작용 오브젝트
     
     
-    public Character_Player Player { get; private set; }
-    public void SetPlayer(Character_Player player) { Player = player; }
+
     public static Mgr_PlayerController Inst { get; private set; }
 
     private void Awake()
@@ -23,7 +22,7 @@ public class Mgr_PlayerController : MonoBehaviour
     {
         yield return null;
         // 카메라를 플레이어에게 설정
-        Mgr_Camera.Inst.SetTarget(Player.CameraTarget);
+        Mgr_Camera.Inst.SetTarget(Character_Player.Inst.CameraTarget);
     }
 
     private void Update()
@@ -33,11 +32,11 @@ public class Mgr_PlayerController : MonoBehaviour
             // 카메라 움직임
             Mgr_Camera.Inst.CameraController.Rotate(Mgr_Input.Inst.Look);
 
-            Player.Movement.MoveInput    = Mgr_Input.Inst.Move;
-            Player.Movement.bJump        = Mgr_Input.Inst.Jump;
-            Player.Movement.bAim         = Mgr_Input.Inst.Aim;
-            Player.Movement.bRunInput    = Mgr_Input.Inst.Run;
-            Player.Movement.bCrouchInput = Mgr_Input.Inst.Crouch;
+            Character_Player.Inst.Movement.MoveInput    = Mgr_Input.Inst.Move;
+            Character_Player.Inst.Movement.bJump        = Mgr_Input.Inst.Jump;
+            Character_Player.Inst.Movement.bAim         = Mgr_Input.Inst.Aim;
+            Character_Player.Inst.Movement.bRunInput    = Mgr_Input.Inst.Run;
+            Character_Player.Inst.Movement.bCrouchInput = Mgr_Input.Inst.Crouch;
 
             UpdateInteractables();
         }
@@ -118,14 +117,14 @@ public class Mgr_PlayerController : MonoBehaviour
     public void OnWeaponSlot(int slot)
     {
         if (Mgr_Game.Inst.GameState != EGameState.Play) return;
-        Player.OnWeaponSlot(slot);
+        Character_Player.Inst.OnWeaponSlot(slot);
     }
 
     // 공격 / Mgr_Input에서 마우스 좌클릭 시 호출
     public void OnAttack()
     {
         if (Mgr_Game.Inst.GameState != EGameState.Play) return;
-        Player.Attack();
+        Character_Player.Inst.Attack();
     }
 
     // 아이템 회전 / Mgr_Input에서 R키를 통해

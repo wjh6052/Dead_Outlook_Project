@@ -28,8 +28,6 @@ public class InventoryComponent : MonoBehaviour
         foreach (Transform child in InventoryOwner.MeshComp.WeaponSocket_2) Destroy(child.gameObject);
 
         yield return null;
-        TryAddItem(Mgr_Item.Inst.GetItem("Test_Medical_1"));
-        TryAddItem(Mgr_Item.Inst.GetItem("Test_Medical_2"));
     }
 
 

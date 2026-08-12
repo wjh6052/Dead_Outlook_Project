@@ -99,7 +99,7 @@ public class UI_ContextMenu : MonoBehaviour
     private void OnDrop()
     {
         Item item = TargetItemIcon.ItemData;
-        Vector3 pos = Mgr_PlayerController.Inst.Player.transform.position;
+        Vector3 pos = Character_Player.Inst.transform.position;
 
         TargetItemIcon.Inventory.RemoveItem(TargetItemIcon);
         Destroy(TargetItemIcon.gameObject);

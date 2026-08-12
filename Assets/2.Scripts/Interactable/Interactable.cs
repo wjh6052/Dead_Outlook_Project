@@ -65,7 +65,7 @@ public class Interactable : MonoBehaviour
         bool hasLOS = false;
         if (inFrustum)
         {
-            int     playerLayer = Mgr_PlayerController.Inst.Player.gameObject.layer;
+            int     playerLayer = Character_Player.Inst.gameObject.layer;
             int     layerMask   = ~(1 << playerLayer);
             Vector3 dir         = cam.transform.position - transform.position;
             hasLOS = !Physics.Raycast(transform.position, dir.normalized, dir.magnitude, layerMask);

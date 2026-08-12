@@ -22,7 +22,7 @@ public class Interactable_Item : Interactable
     {
         if (ItemData == null) return;
 
-        InventoryComponent inv = Mgr_PlayerController.Inst.Player.InventoryComp;
+        InventoryComponent inv = Character_Player.Inst.InventoryComp;
         if (inv.TryAddItem(ItemData))
         {
             Mgr_UI.Inst.ShowInteractUI(false);

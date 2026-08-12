@@ -33,7 +33,8 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     public PlayerMovement     Movement      { get; private set; }
     public PlayerAnimator     Animator      { get; private set; }
     public InventoryComponent InventoryComp { get; private set; }
-    
+    public MeshComponent      MeshComp      { get; private set; }
+
     public static Character_Player Inst { get; private set; }
     #endregion 
 
@@ -51,8 +52,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
     private void Start()
     {
-        Mgr_PlayerController.Inst.SetPlayer(this);
+        InventoryComp.TryAddItem(Mgr_Item.Inst.GetItem("Test_Bet"));
     }
+
 
 
     #region IDamageable ---------------------------------------
@@ -171,7 +173,6 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
     [field: SerializeField] public int CurrentWeaponSlot { get; private set; } // 현재 선택된 무기 슬롯 (1·2=무기, 3=맨손)
     public Weapon CurrentWeapon { get; private set; } // 현재 손에 들고 있는 무기
-    public MeshComponent MeshComp { get; private set; }
 
 
     // 무기 슬롯 선택 — 1·2번은 해당 슬롯 무기 장착, 3번은 해제
