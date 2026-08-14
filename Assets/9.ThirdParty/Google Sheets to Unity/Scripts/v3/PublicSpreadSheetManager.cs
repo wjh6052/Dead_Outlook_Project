@@ -1,5 +1,7 @@
-﻿using Google.GData.Client;
+﻿#if GSTU_Legacy
+using Google.GData.Client;
 using Google.GData.Spreadsheets;
+#endif
 using System;
 using System.Collections.Generic;
 using UnityEngine;

@@ -1,4 +1,6 @@
-﻿using Google.GData.Client;
+﻿#if GSTU_Legacy
+using Google.GData.Client;
+#endif
 using System;
 using UnityEngine;
 
