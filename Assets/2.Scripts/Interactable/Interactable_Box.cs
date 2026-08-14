@@ -12,9 +12,6 @@ public class Interactable_Box : Interactable
         foreach (Item item in entry.GetItems())
             BoxInventory.TryAddItem(item);
 
-        // 테스트 모든 아이템 추가
-        foreach (Item item in Mgr_Item.Inst.GetAllItems())
-            BoxInventory.TryAddItem(item.Copy());
     }
 
     public override void Interact()

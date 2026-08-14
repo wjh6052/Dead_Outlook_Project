@@ -82,6 +82,9 @@ public class Mgr_PlayerController : MonoBehaviour
             case EGameState.Play:
                 {
                     Mgr_UI.Inst.OnInventory(true);
+                    // 은신처에 있으면 보관함 자동 표시
+                    if (Mgr_Hideout.Inst.IsOnHideout)
+                        Mgr_UI.Inst.UI_Inventory_Player.ShowBox(Mgr_Hideout.Inst.StorageData);
                     Mgr_Game.Inst.SetGameState(EGameState.UI);
                 }
                 break;

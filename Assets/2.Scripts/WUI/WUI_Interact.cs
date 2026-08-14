@@ -5,6 +5,7 @@ using UnityEngine;
 public class WUI_Interact : MonoBehaviour
 {
     [SerializeField] private GameObject     Interact_Dot;
+    [SerializeField] private TextMeshProUGUI InteractName_TMP;
 
     private void Awake()
     {
@@ -17,15 +18,23 @@ public class WUI_Interact : MonoBehaviour
         transform.rotation = Mgr_Camera.Inst.CameraController.MainCamera.transform.rotation;
     }
 
-    public void Show(bool show, Interactable target = null)
+    public void Show(bool show, Interactable target = null, string interactText = "")
     {
         this.gameObject.SetActive(show);
         if (show && target != null)
         {
             this.transform.position = target.InteractUIPosition;
 
-            if (target is Interactable_Item itemTarget)
-                transform.Find("InteractName_TMP").GetComponent<TextMeshProUGUI>().text = $"{itemTarget.ItemData.Name} {itemTarget.ItemData.Amount}개 줍기";
+            if (string.IsNullOrEmpty(interactText))
+            {
+                // interactText가 없으면 아이템 이름 표시
+                if (target is Interactable_Item itemTarget)
+                    InteractName_TMP.text = $"{itemTarget.ItemData.Name} {itemTarget.ItemData.Amount}개 줍기";
+            }
+            else
+            {
+                InteractName_TMP.text = interactText;
+            }
         }
     }
 

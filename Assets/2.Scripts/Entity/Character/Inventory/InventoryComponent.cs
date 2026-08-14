@@ -4,13 +4,13 @@ public class InventoryComponent : MonoBehaviour
 {
 
     public InventoryData  PocketData;  // 주머니 인벤토리 데이터 (고정)
-    [System.NonSerialized] public Item_Container VestItem;    // 현재 장착된 조끼 아이템
-    [System.NonSerialized] public Item_Container BagItem;     // 현재 장착된 가방 아이템
-    [System.NonSerialized] public Item           Weapon_1_Item; // 현재 장착된 무기 1
-    [System.NonSerialized] public Item           Weapon_2_Item; // 현재 장착된 무기 2
+    public Item_Container VestItem;    // 현재 장착된 조끼 아이템
+    public Item_Container BagItem;     // 현재 장착된 가방 아이템
+    public Item           Weapon_1_Item; // 현재 장착된 무기 1
+    public Item           Weapon_2_Item; // 현재 장착된 무기 2
 
-    [System.NonSerialized] public Weapon Weapon_1; // 현재 WeaponSocket_1에 장착된 무기 오브젝트
-    [System.NonSerialized] public Weapon Weapon_2; // 현재 WeaponSocket_2에 장착된 무기 오브젝트
+    public Weapon Weapon_1; // 현재 WeaponSocket_1에 장착된 무기 오브젝트
+    public Weapon Weapon_2; // 현재 WeaponSocket_2에 장착된 무기 오브젝트
 
     private IInventory InventoryOwner; // 같은 오브젝트의 IInventory 구현체
 
@@ -41,6 +41,37 @@ public class InventoryComponent : MonoBehaviour
         return false;
     }
 
+
+    // 모든 인벤토리 초기화 — 사망 시 아이템 손실 처리
+    public void ClearInventory()
+    {
+        // 주머니 초기화
+        PocketData.Items.Clear();
+        PocketData.OnChanged?.Invoke();
+
+        // 조끼 초기화
+        if (VestItem != null)
+        {
+            VestItem.ContainerInventory.Items.Clear();
+            VestItem.ContainerInventory.OnChanged?.Invoke();
+            VestItem = null;
+        }
+
+        // 가방 초기화
+        if (BagItem != null)
+        {
+            BagItem.ContainerInventory.Items.Clear();
+            BagItem.ContainerInventory.OnChanged?.Invoke();
+            BagItem = null;
+        }
+
+        // 무기 해제
+        SetWeapon(true,  null);
+        SetWeapon(false, null);
+
+        // 장착 슬롯 UI 초기화 — 아이콘 제거 + 콜백 재등록
+        Mgr_UI.Inst.UI_Inventory_Player.Setup();
+    }
 
     // 무기 장착/해제 — isFirst: true=1번 슬롯, false=2번 슬롯 / item이 null이면 해제
     public void SetWeapon(bool isFirst, Item item)

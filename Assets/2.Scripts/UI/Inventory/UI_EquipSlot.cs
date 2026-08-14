@@ -20,6 +20,13 @@ public class UI_EquipSlot : UI_ItemGrid
 
     public void Setup()
     {
+        // 기존 아이콘 오브젝트 제거
+        if (EquippedIcon != null)
+        {
+            Destroy(EquippedIcon.gameObject);
+            EquippedIcon = null;
+        }
+
         Slot        = transform.Find("EquipSlot").GetComponent<UI_ItemSlot>();
         Slot.Init(this, 0, 0);
         Slots       = new UI_ItemSlot[1, 1];

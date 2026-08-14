@@ -50,9 +50,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         CameraStandHeight = CameraTarget.localPosition.y;
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
-        InventoryComp.TryAddItem(Mgr_Item.Inst.GetItem("Test_Bet"));
+        yield return null; // Mgr_UI.Start() 실행 대기
     }
 
 
@@ -136,6 +136,8 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     private void OnDeath()
     {
         Debug.Log($"플레이어 죽음 / 현재 체력:{HP}");
+        InventoryComp.ClearInventory();          // 보유 아이템 전체 손실
+        Mgr_Game.Inst.ChangeScene(EScene.Hideout); // 은신처로 귀환
     }
 
     #endregion

@@ -53,7 +53,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WUI_Interact
   Interact_Dot: {fileID: 4698531877234472359}
-  Interact_Icon: {fileID: 0}
+  InteractName_TMP: {fileID: 6880138709168919127}
 --- !u!223 &8227603737881894624
 Canvas:
   m_ObjectHideFlags: 0

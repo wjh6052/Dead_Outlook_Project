@@ -4,8 +4,11 @@ using UnityEngine;
 public class Interactable : MonoBehaviour
 {
     [SerializeField] public Vector3 InteractUIOffset = new Vector3(0f, 0f, 0f); // Interact UI가 표시될 오프셋
-    // true면 레이캐스트 감지에서 제외 — 상호작용 불가 상태 (아웃라인·UI·Interact 모두 차단)
-    // 값 변경 시 Rigidbody 중력 자동 연동
+                                                                                // true면 레이캐스트 감지에서 제외 — 상호작용 불가 상태 (아웃라인·UI·Interact 모두 차단)
+                                                                                // 값 변경 시 Rigidbody 중력 자동 연동
+
+    [SerializeField] public string InteractText;                               // 상호작용 UI에 표시될 텍스트
+
     private bool _isDisabled;
     public bool IsDisabled
     {
@@ -89,7 +92,7 @@ public class Interactable : MonoBehaviour
     public virtual void OnFocus()
     {
         foreach (Outline outline in OutlineComps) outline.enabled = true;
-        Mgr_UI.Inst.ShowInteractUI(true, this);
+        Mgr_UI.Inst.ShowInteractUI(true, this, InteractText);
     }
 
     // 레이가 이 오브젝트에서 벗어날 때 호출

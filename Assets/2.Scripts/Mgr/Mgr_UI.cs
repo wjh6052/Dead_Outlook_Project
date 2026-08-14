@@ -38,7 +38,10 @@ public class Mgr_UI : MonoBehaviour
     public WUI_Interact InteractWUI { get; private set; }
 
     [Header("집중 타이머 UI")]
-    [SerializeField] public UI_FocusTimer FocusTimer;
+    [SerializeField] public UI_FocusTimer  FocusTimer;
+
+    [Header("탈출 타이머 UI")]
+    [SerializeField] public UI_EscapeTimer EscapeTimer;
 
 
     [Header("플레이어 인벤토리UI")]
@@ -70,6 +73,7 @@ public class Mgr_UI : MonoBehaviour
         InteractWUI = Instantiate(Resources.Load<WUI_Interact>("Prefab/WUI/PF_WUI_Interact"));
 
         FocusTimer.gameObject.SetActive(false);
+        EscapeTimer.Init(false);
 
         //UI 프리팹
         {
@@ -94,6 +98,20 @@ public class Mgr_UI : MonoBehaviour
 
 
 
+    // 씬 전환 시 모든 UI 초기화 — Mgr_Game.ChangeScene에서 호출
+    public void Reset()
+    {
+        OnInventory(false);
+
+        if (CurrentContextMenu != null)
+        {
+            Destroy(CurrentContextMenu.gameObject);
+            CurrentContextMenu = null;
+        }
+
+        ShowInteractUI(false);
+    }
+
     // 인벤토리 열기 닫기
     public void OnInventory(bool isOn)
     {
@@ -117,9 +135,9 @@ public class Mgr_UI : MonoBehaviour
 
 
     // 상호작용 UI 표시 / 숨김
-    public void ShowInteractUI(bool show, Interactable target = null)
+    public void ShowInteractUI(bool show, Interactable target = null, string interactText = "")
     {
-        InteractWUI?.Show(show, target);
+        InteractWUI?.Show(show, target, interactText);
     }
 
     // 컨텍스트 메뉴 표시 — 기존 메뉴 닫고 새로 스폰
