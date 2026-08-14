@@ -308,5 +308,4 @@ public class UI_ItemGrid : MonoBehaviour
             for (int dx = 0; dx < sizeX; dx++)
                 OccupiedBy[x + dx, y + dy] = icon;
     }
-
 }

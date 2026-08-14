@@ -11,7 +11,8 @@ public enum ESlotHighlight
 
 public class UI_ItemSlot : MonoBehaviour
 {
-    public UI_ItemGrid Inventory; // 소속 인벤토리
+    public UI_ItemGrid Inventory { get; private set; } // 소속 인벤토리
+    
     public int          GridX;     // 그리드 X 좌표
     public int          GridY;     // 그리드 Y 좌표
 

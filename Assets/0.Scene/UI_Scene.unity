@@ -698,7 +698,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29623a4e5dce9d4ca703b737bf60797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_Item_Slot
-  Inventory: {fileID: 0}
   GridX: 0
   GridY: 0
 --- !u!1001 &622274537
@@ -3542,7 +3541,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29623a4e5dce9d4ca703b737bf60797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_Item_Slot
-  Inventory: {fileID: 0}
   GridX: 0
   GridY: 0
 --- !u!1 &1869211080
@@ -3966,7 +3964,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29623a4e5dce9d4ca703b737bf60797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_Item_Slot
-  Inventory: {fileID: 0}
   GridX: 0
   GridY: 0
 --- !u!1 &2049691474
@@ -4132,7 +4129,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29623a4e5dce9d4ca703b737bf60797, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_Item_Slot
-  Inventory: {fileID: 0}
   GridX: 0
   GridY: 0
 --- !u!1 &2094889295
