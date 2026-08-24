@@ -523,7 +523,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 247
+    m_Bits: 503
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1899,6 +1899,82 @@ MonoBehaviour:
     GridWidth: 4
     GridHeight: 2
     Items: []
+  VestItem:
+    <ItemType>k__BackingField: 0
+    <Rarity>k__BackingField: 0
+    <ID>k__BackingField: 
+    <Name>k__BackingField: 
+    <Description>k__BackingField: 
+    <Weight>k__BackingField: 0
+    <MaxStack>k__BackingField: 0
+    <TileSizeX>k__BackingField: 0
+    <TileSizeY>k__BackingField: 0
+    <Amount>k__BackingField: 0
+    <SlotX>k__BackingField: 0
+    <SlotY>k__BackingField: 0
+    <IsRotated>k__BackingField: 0
+    <Icon>k__BackingField: {fileID: 0}
+    <Prefab>k__BackingField: {fileID: 0}
+    <ContainerType>k__BackingField: 0
+    <ContainerInventory>k__BackingField:
+      GridWidth: 0
+      GridHeight: 0
+      Items: []
+  BagItem:
+    <ItemType>k__BackingField: 0
+    <Rarity>k__BackingField: 0
+    <ID>k__BackingField: 
+    <Name>k__BackingField: 
+    <Description>k__BackingField: 
+    <Weight>k__BackingField: 0
+    <MaxStack>k__BackingField: 0
+    <TileSizeX>k__BackingField: 0
+    <TileSizeY>k__BackingField: 0
+    <Amount>k__BackingField: 0
+    <SlotX>k__BackingField: 0
+    <SlotY>k__BackingField: 0
+    <IsRotated>k__BackingField: 0
+    <Icon>k__BackingField: {fileID: 0}
+    <Prefab>k__BackingField: {fileID: 0}
+    <ContainerType>k__BackingField: 0
+    <ContainerInventory>k__BackingField:
+      GridWidth: 0
+      GridHeight: 0
+      Items: []
+  Weapon_1_Item:
+    <ItemType>k__BackingField: 0
+    <Rarity>k__BackingField: 0
+    <ID>k__BackingField: 
+    <Name>k__BackingField: 
+    <Description>k__BackingField: 
+    <Weight>k__BackingField: 0
+    <MaxStack>k__BackingField: 0
+    <TileSizeX>k__BackingField: 0
+    <TileSizeY>k__BackingField: 0
+    <Amount>k__BackingField: 0
+    <SlotX>k__BackingField: 0
+    <SlotY>k__BackingField: 0
+    <IsRotated>k__BackingField: 0
+    <Icon>k__BackingField: {fileID: 0}
+    <Prefab>k__BackingField: {fileID: 0}
+  Weapon_2_Item:
+    <ItemType>k__BackingField: 0
+    <Rarity>k__BackingField: 0
+    <ID>k__BackingField: 
+    <Name>k__BackingField: 
+    <Description>k__BackingField: 
+    <Weight>k__BackingField: 0
+    <MaxStack>k__BackingField: 0
+    <TileSizeX>k__BackingField: 0
+    <TileSizeY>k__BackingField: 0
+    <Amount>k__BackingField: 0
+    <SlotX>k__BackingField: 0
+    <SlotY>k__BackingField: 0
+    <IsRotated>k__BackingField: 0
+    <Icon>k__BackingField: {fileID: 0}
+    <Prefab>k__BackingField: {fileID: 0}
+  Weapon_1: {fileID: 0}
+  Weapon_2: {fileID: 0}
 --- !u!114 &1663141580
 MonoBehaviour:
   m_ObjectHideFlags: 0

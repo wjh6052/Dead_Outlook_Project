@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5ad01afefde8d2446baaaa41b36662f5
+guid: 2eb8e8ca81778b844ad174146e4a5933
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,11 +33,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: ZombieFemale_AttackForward01
+      name: ZombieFemale_Death03
       takeName: Unreal Take
       internalID: 8993902097722301239
       firstFrame: 0
-      lastFrame: 100
+      lastFrame: 50
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1352,5 +1352,5 @@ AssetOrigin:
   productId: 338096
   packageName: Female Zombie Animations
   packageVersion: 1.0
-  assetPath: Assets/ZombieFemaleAnimations/Art/Animations/ZombieFemale_AttackForward01.FBX
+  assetPath: Assets/ZombieFemaleAnimations/Art/Animations/ZombieFemale_Death03.FBX
   uploadId: 803404

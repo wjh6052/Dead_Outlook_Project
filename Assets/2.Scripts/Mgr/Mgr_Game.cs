@@ -32,40 +32,30 @@ public class Mgr_Game : MonoBehaviour
     private void Awake()
     {
         Inst = this;
+
+        // 이미 로드된 씬은 스킵 — 에디터 다중 씬 편집 환경과 빌드 모두 대응
+        LoadSceneIfNotLoaded("UI_Scene");
+        LoadSceneIfNotLoaded("Player_Scene");
     }
 
     private void Start()
     {
-        // 이미 로드된 씬은 스킵 — 에디터 다중 씬 편집 환경과 빌드 모두 대응
-        LoadSceneIfNotLoaded("UI_Scene");
-        LoadSceneIfNotLoaded("Player_Scene");
-
         ChangeScene(EScene.Hideout);
     }
 
     // 씬이 로드되지 않은 경우에만 Additive 로드
-    private void LoadSceneIfNotLoaded(string sceneName)
-    {
-        if (SceneManager.GetSceneByName(sceneName).isLoaded) return;
-        SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
-    }
+
 
     private void Update()
     {
-        // 테스트
-        {
-            if (Keyboard.current.tKey.wasPressedThisFrame)
-            {
-                Character_Player.Inst.IsFocusing = false;
-            }
 
-            // 플레이어에게 데미지
-            if (Keyboard.current.yKey.wasPressedThisFrame)
-            {
-                Character_Player.Inst?.TakeDamage(10f, this.gameObject, this.gameObject);
-            }
-        }
+    }
 
+
+    private void LoadSceneIfNotLoaded(string sceneName)
+    {
+        if (SceneManager.GetSceneByName(sceneName).IsValid()) return;
+        SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
     }
 
 

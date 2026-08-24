@@ -7,110 +7,195 @@ using UnityEditor;
 public enum EZombieState
 {
     Idle,   // 대기 (플레이어 미감지)
-    Alert,  // 경계 (소리 감지 시 해당 방향으로 이동 — 소음 시스템 구현 후 사용)
+    Alert,  // 경계 (소리 감지 시 해당 방향으로 이동)
     Chase,  // 추격
     Attack, // 공격
+    Hit,    // 피격 (행동 중단)
+    Death,  // 사망
 }
 
 // 좀비 AI 컨트롤러
-// - NavMeshAgent 기반 이동 · 상태 머신 · 감지/추격/공격
+// - NavMeshAgent 기반 이동 · 상태 머신 · 시각/소음 감지 · 추격 · 공격
 public class AIZombieController : MonoBehaviour
 {
     [Header("테스트")]
-    [SerializeField] private GameObject ContactObject;        // 컨택 테스트용 오브젝트
-    [SerializeField] private bool       bTest;                // true면 플레이어 감지 없이 Idle 상태 고정
+    [SerializeField] private GameObject ContactObject; // 컨택 테스트용 오브젝트
 
-    [Header("감지")]
-    [SerializeField] private float   ContactRange  = 10f;  // 감지 거리
-    [SerializeField] private float   ContactAngle  = 120f; // 감지 각도
-    [SerializeField] private FTimer  Contact_Timer;        // 컨택 타이머 (Max = 컨택까지 필요한 시야 유지 시간)
+    [Header("상태")]
+    [SerializeField] private EZombieState State = EZombieState.Idle;
 
-    [Header("망각")]
-    [SerializeField] private FTimer  Forget_Timer;         // 망각 타이머 (Max = 컨택 후 시야를 잃었을 때 잊기까지 시간)
+    [Header("시각 감지")]
+    [SerializeField] private bool   UseVisualDetection = true; // true면 시각 감지 활성화
+    [SerializeField] private float  ContactRange       = 10f;  // 감지 거리
+    [SerializeField] private float  ContactAngle       = 120f; // 감지 각도
+    [SerializeField] private FTimer Contact_Timer;             // 컨택 타이머 (Max = 컨택까지 필요한 시야 유지 시간)
+    [SerializeField] private FTimer Forget_Timer;              // 망각 타이머 (Max = 시야를 잃었을 때 잊기까지 시간)
+
+    [Header("이동")]
+    [SerializeField] private float WalkSpeed = 1f; // 걷기 속도 (Alert)
+    [SerializeField] private float RunSpeed  = 3f; // 뛰기 속도 (Chase)
+
+    [Header("소음 감지")]
+    [SerializeField] private float NoiseResistance = 3f; // 이 값 미만의 소음 강도는 무시
 
     [Header("경계")]
-    [SerializeField] private FTimer  Alert_Timer;          // 경계 타이머 (Max = 망각 후 경계 상태 유지 시간)
+    [SerializeField] private FTimer Alert_Timer; // 경계 타이머 (Max = 경계 상태 유지 시간)
 
     [Header("공격")]
-    [SerializeField] private float   AttackRange = 1.5f;  // 공격 거리 (NavMeshAgent StoppingDistance와 동일)
-    [SerializeField] private FTimer  Attack_Timer;         // 공격 쿨다운 타이머 (Max = 공격 쿨다운 초)
+    [SerializeField] private float  AttackRange  = 1.5f; // 공격 거리
+    [SerializeField] private FTimer Attack_Timer;         // 공격 쿨다운 타이머
 
+    // 런타임 상태
+    [Header("탐지된 타겟")]
+    [SerializeField] private Character_Player Target;      // 시각으로 감지한 플레이어 (null = 미감지)
+    private Vector3          NoisePoint;   // 소음 발생 위치
+    private ESpeedType       SpeedType;    // 현재 이동 속도 타입 (ChangeState에서 갱신)
+    private bool             IsHit;        // 피격 이벤트 발생 여부
+    private bool             IsAttacking;  // 공격 애니메이션 진행 중 여부
 
-    #region 상태
-    [SerializeField] private EZombieState State = EZombieState.Idle;
-    #endregion
-
-
-    #region 컴포넌트
+    // 컴포넌트
     private Character_Zombie Zombie;
     private NavMeshAgent     Agent;
-    #endregion
+
 
 
     private void Awake()
     {
         Zombie = GetComponent<Character_Zombie>();
-
         Agent  = GetComponent<NavMeshAgent>();
         Agent.stoppingDistance = AttackRange;
 
-        //테스트 용
+        Alert_Timer.Current = Alert_Timer.Max; // 시작 시 경계 타이머를 만료 상태로 초기화
+
         ContactObject.SetActive(false);
     }
 
-
     private void Update()
     {
-        UpdateContact();
+        // 시각 감지
+        UpdateVisualDetection();
 
+        // 상태 설정
+        UpdateState();
+
+        // 상태별 행동 함수 호출
         switch (State)
         {
-            // 대기
-            case EZombieState.Idle:
-                {
-                    UpdateIdle();
-                    break;
-                }
-            // 경계
-            case EZombieState.Alert:
-                {
-                    UpdateAlert();
-                    break;
-                }
-            // 추격
-            case EZombieState.Chase:
-                {
-                    UpdateChase();
-                    break;
-                }
-            // 공격
-            case EZombieState.Attack:
-                {
-                    UpdateAttack();
-                    break;
-                }
-
+            case EZombieState.Idle:   UpdateIdle();   break;
+            case EZombieState.Alert:  UpdateAlert();  break;
+            case EZombieState.Chase:  UpdateChase();  break;
+            case EZombieState.Attack: UpdateAttack(); break;
+            case EZombieState.Hit:    UpdateHit();    break;
         }
 
-        // 매 프레임 현재 상태를 애니메이터에 반영
-        Zombie.ZombieAnim.UpdateState(State);
+        // 매 프레임 현재 상태를 애니메이터에 반영 (SpeedType은 ChangeState에서 갱신)
+        Zombie.ZombieAnim.UpdateState(State, SpeedType);
     }
 
-    // 컨택 타이머 갱신 및 상태 전환
-    private void UpdateContact()
-    {
-        // 테스트 모드 — 상태를 Idle로 고정
-        if (bTest)
-        {
-            if (State != EZombieState.Idle) ChangeState(EZombieState.Idle);
-            return;
-        }
 
-        if (IsPlayerContact())
+    // 감지 결과에 따라 상태 전환
+    private void UpdateState()
+    {
+        // 체력이 0 이하면 사망 상태로 전환
+        if (Zombie.HP <= 0)
+            ChangeState(EZombieState.Death);
+        // 피격 이벤트 발생 시 Hit 상태로 전환
+        else if (IsHit)
+        {
+            ChangeState(EZombieState.Hit);
+        }
+        // 공격 중이거나 플레이어가 공격 범위 안에 있으면 Attack 상태 유지
+        else if (IsAttacking || (Target != null && Vector3.Distance(transform.position, Target.transform.position) <= AttackRange))
+            ChangeState(EZombieState.Attack);
+
+        // Target이 있으면 추격
+        else if (Target != null)
+            ChangeState(EZombieState.Chase);
+
+        // Target이 없고 Alert 타이머가 남아있으면 경계
+        else if (Target == null && !Alert_Timer.IsReached)
+            ChangeState(EZombieState.Alert);
+
+        // 그 외에는 대기
+        else
+            ChangeState(EZombieState.Idle);
+    }
+
+
+    private void ChangeState(EZombieState newState)
+    {
+        if (State == newState) return;
+        State = newState;
+        switch (newState)
+        {
+            case EZombieState.Idle:
+                SetSpeedType(ESpeedType.Idle); // 정지
+                break;
+
+            case EZombieState.Alert:
+                SetSpeedType(ESpeedType.Walk); // 걷기
+                Alert_Timer.Reset();           // 경계 타이머 초기화
+                break;
+
+            case EZombieState.Chase:
+                SetSpeedType(ESpeedType.Run);  // 뛰기
+                Alert_Timer.Reset();           // 경계 타이머 초기화
+                break;
+
+            case EZombieState.Attack:
+                SetSpeedType(ESpeedType.Idle);           // 공격 중 정지
+                Attack_Timer.Current = Attack_Timer.Max; // 진입 즉시 첫 공격
+                break;
+
+            case EZombieState.Hit:
+                SetSpeedType(ESpeedType.Idle); // 피격 중 정지
+                break;
+
+            case EZombieState.Death:
+                SetSpeedType(ESpeedType.Idle); // 사망 시 정지
+                Agent.enabled = false;         // NavMeshAgent 비활성화
+                break;
+        }
+    }
+
+
+    // SpeedType 변경 + Agent 속도 동기화
+    private void SetSpeedType(ESpeedType speedType)
+    {
+        SpeedType = speedType;
+        Agent.speed = speedType switch
+        {
+            ESpeedType.Walk => WalkSpeed,
+            ESpeedType.Run => RunSpeed,
+            _ => 0f,
+        };
+
+        // Idle이면 이동 중단
+        if (speedType == ESpeedType.Idle)
+        {
+            Agent.ResetPath();
+            Agent.velocity = Vector3.zero;
+        }
+    }
+
+
+    #region 시각 감지
+    // 플레이어가 시야에 들어오면 Target에 저장, 잊으면 null
+    private void UpdateVisualDetection()
+    {
+        if (!UseVisualDetection)        return;
+        if (State == EZombieState.Death) return;
+
+        Character_Player player = GetPlayerInSight();
+        if (player != null)
         {
             // 시야 안 — 컨택 타이머 누적, 망각 타이머 리셋
             Contact_Timer.Tick();
             Forget_Timer.Reset();
+
+            // 컨택 타이머 완료 시 플레이어 저장
+            if (Contact_Timer.IsReached)
+                Target = player;
         }
         else if (Contact_Timer.IsReached)
         {
@@ -118,7 +203,8 @@ public class AIZombieController : MonoBehaviour
             Forget_Timer.Tick();
             if (Forget_Timer.IsReached)
             {
-                // 망각 시간 초과 → 컨택 해제
+                // 망각 시간 초과 → 플레이어를 잊음
+                Target = null;
                 Contact_Timer.Reset();
                 Forget_Timer.Reset();
             }
@@ -130,109 +216,155 @@ public class AIZombieController : MonoBehaviour
         }
 
         ContactObject.SetActive(Contact_Timer.IsReached);
-
-        // 컨택 여부에 따라 상태 전환
-        if (Contact_Timer.IsReached && (State == EZombieState.Idle || State == EZombieState.Alert))
-            ChangeState(EZombieState.Chase);
-        else if (!Contact_Timer.IsReached && State == EZombieState.Chase)
-            ChangeState(EZombieState.Alert);
     }
 
-    // 플레이어가 감지 거리·각도 안에 있고 시야가 막히지 않으면 true
-    private bool IsPlayerContact()
+    // 시야 내 플레이어를 반환, 없으면 null
+    private Character_Player GetPlayerInSight()
     {
         Vector3 toPlayer = Character_Player.Inst.transform.position - transform.position;
 
         // 거리 체크
-        if (toPlayer.magnitude > ContactRange) return false;
+        if (toPlayer.magnitude > ContactRange) return null;
 
         // 각도 체크 — 정면과 플레이어 방향 사이의 각도
         float angle = Vector3.Angle(transform.forward, toPlayer);
-        if (angle > ContactAngle / 2f) return false;
+        if (angle > ContactAngle / 2f) return null;
 
-        // 레이캐스트 — 좀비 머리에서 플레이어 머리로, 장애물에 막히면 false
+        // 레이캐스트 — 좀비 머리에서 플레이어 머리로
         Vector3 rayOrigin = Zombie.MeshComp.HeadBone.position;
         Vector3 rayTarget = Character_Player.Inst.MeshComp.HeadBone.position;
-        Vector3 rayDir = (rayTarget - rayOrigin).normalized;
+        Vector3 rayDir    = (rayTarget - rayOrigin).normalized;
         if (Physics.Raycast(rayOrigin, rayDir, out RaycastHit hit, ContactRange))
         {
-            if (hit.collider.GetComponentInParent<Character_Player>() == null)
+            Character_Player player = hit.collider.GetComponentInParent<Character_Player>();
+            if (player == null)
             {
                 Debug.DrawRay(rayOrigin, rayDir * hit.distance, Color.red);
-                return false;
+                return null; // 장애물에 막힘
             }
+
+            Debug.DrawRay(rayOrigin, rayTarget - rayOrigin, Color.green);
+            return player; // 레이캐스트로 감지된 플레이어 반환
         }
 
-        Debug.DrawRay(rayOrigin, rayTarget - rayOrigin, Color.green);
-        return true;
+        return null;
     }
 
+    #endregion
+
+
+    #region 소음 감지
+    // Mgr_Noise에서 호출
+    public void OnNoiseDetected(Vector3 position, float intensity)
+    {
+        // Idle / Alert 상태가 아니면 소음 무시
+        if (State != EZombieState.Idle && State != EZombieState.Alert) return;
+
+        // 내성 미만의 소음은 무시
+        if (intensity < NoiseResistance) return;
+
+        NoisePoint = position;
+        Alert_Timer.Reset(); // 경계 타이머 시작
+    }
+    #endregion
+
+
+    #region 대기
     // 대기 상태
     private void UpdateIdle()
     {
 
     }
+    #endregion
 
-    // 경계 상태 — Alert_Timer.Max 후 Idle로 복귀
+
+    #region 경계
+    // 경계 상태 — NoisePoint로 이동, 도착 후 타이머 누적
     private void UpdateAlert()
     {
-        Alert_Timer.Tick();
-        if (Alert_Timer.IsReached)
-            ChangeState(EZombieState.Idle);
-    }
+        Agent.SetDestination(NoisePoint);
 
-    // 추격 상태 — 플레이어 방향으로 이동, 공격 거리 진입 시 Attack 전환
+        // 목적지에 도착했을 때만 타이머 누적
+        if (!Agent.pathPending && Agent.remainingDistance <= Agent.stoppingDistance)
+            Alert_Timer.Tick();
+    }
+    #endregion
+
+
+    #region 추격
+    // 추격 상태 — Target 방향으로 이동
     private void UpdateChase()
     {
-        Agent.SetDestination(Character_Player.Inst.transform.position);
+        if (Target == null) return;
+        Agent.SetDestination(Target.transform.position);
+    }
+    #endregion
 
-        float dist = Vector3.Distance(transform.position, Character_Player.Inst.transform.position);
-        if (dist <= AttackRange)
-            ChangeState(EZombieState.Attack);
+
+    #region 피격
+    // 피격 상태
+    private void UpdateHit()
+    {
+
     }
 
-    // 공격 상태 — 쿨다운마다 플레이어에게 데미지, 사거리 이탈 시 Chase 복귀
+    // Character_Zombie.OnHit에서 호출
+    public void OnHit(GameObject attacker)
+    {
+        // Target이 없을 때만 attacker를 Target으로 설정
+        if (Target == null)
+            Target = attacker.GetComponentInParent<Character_Player>();
+
+        IsHit = true;
+
+        if (IsAttacking) IsAttacking = false;
+
+    }
+
+    // 피격 종료 — Character_Zombie.EndHit에서 호출 (애니메이션 이벤트)
+    public void OnEndHit()
+    {
+        IsHit = false;
+    }
+
+    #endregion
+
+
+    #region 공격
+    // 공격 상태 — 쿨다운마다 공격
     private void UpdateAttack()
     {
-        float dist = Vector3.Distance(transform.position, Character_Player.Inst.transform.position);
+        if (IsAttacking) return; // 공격 애니메이션 진행 중이면 대기
 
-        // 사거리 이탈 — Chase로 복귀
-        if (dist > AttackRange)
-        {
-            ChangeState(EZombieState.Chase);
-            return;
-        }
-
-        // 쿨다운마다 공격
         Attack_Timer.Tick();
         if (Attack_Timer.IsReached)
         {
             Debug.Log("좀비가 공격");
+            IsAttacking = true;
             Zombie.ZombieAnim.PlayAttack();
             Attack_Timer.Reset();
         }
     }
 
-    private void ChangeState(EZombieState newState)
+    // 공격 종료 — Character_Zombie.EndAttack에서 호출 (애니메이션 이벤트)
+    public void OnEndAttack()
     {
-        State = newState;
-        switch (newState)
-        {
-            case EZombieState.Idle:
-                Agent.ResetPath(); // 이동 멈춤
-                break;
-            case EZombieState.Alert:
-                Agent.ResetPath();    // 이동 멈춤
-                Alert_Timer.Reset();  // 경계 타이머 리셋
-                break;
-            case EZombieState.Chase:
-                Alert_Timer.Reset();  // 경계 타이머 리셋
-                break;
-            case EZombieState.Attack:
-                Attack_Timer.Current = Attack_Timer.Max; // 진입 즉시 첫 공격
-                break;
-        }
+        IsAttacking = false;
+        Agent.Warp(transform.position); // NavMeshAgent 위치를 Root Motion이 이동한 위치로 동기화
     }
+    #endregion
+
+
+    #region 사망
+    // Character_Zombie.OnDeath에서 호출
+    public void OnDeath()
+    {
+        ChangeState(EZombieState.Death);
+    }
+    #endregion
+
+
+
 
 
 
@@ -242,10 +374,10 @@ public class AIZombieController : MonoBehaviour
     {
         Gizmos.color = Color.red;
 
-        float     halfAngle = ContactAngle / 2f;
-        Vector3   forward   = transform.forward;
-        Vector3   leftDir   = Quaternion.Euler(0, -halfAngle, 0) * forward;
-        Vector3   rightDir  = Quaternion.Euler(0,  halfAngle, 0) * forward;
+        float   halfAngle = ContactAngle / 2f;
+        Vector3 forward   = transform.forward;
+        Vector3 leftDir   = Quaternion.Euler(0, -halfAngle, 0) * forward;
+        Vector3 rightDir  = Quaternion.Euler(0,  halfAngle, 0) * forward;
 
         // 반투명 색으로 부채꼴 채우기
         Handles.color = new Color(1f, 0f, 0f, 0.15f);

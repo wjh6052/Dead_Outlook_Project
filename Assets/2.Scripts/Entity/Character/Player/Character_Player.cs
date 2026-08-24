@@ -50,12 +50,6 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         CameraStandHeight = CameraTarget.localPosition.y;
     }
 
-    private IEnumerator Start()
-    {
-        yield return null; // Mgr_UI.Start() 실행 대기
-    }
-
-
 
     #region IDamageable ---------------------------------------
 

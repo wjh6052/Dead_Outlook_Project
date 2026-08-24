@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 37bce19cadc439d4095e42bd4dcf9d7a
+guid: 9bcd81f33948ae74d884a926cbcb60cc
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,11 +33,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: ZombieFemale_Run01Forward
+      name: ZombieFemale_HitReactLLeg01
       takeName: Unreal Take
       internalID: 8993902097722301239
       firstFrame: 0
-      lastFrame: 22
+      lastFrame: 120
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -48,10 +48,10 @@ ModelImporter:
       loopBlend: 0
       loopBlendOrientation: 1
       loopBlendPositionY: 1
-      loopBlendPositionXZ: 0
+      loopBlendPositionXZ: 1
       keepOriginalOrientation: 1
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
+      keepOriginalPositionXZ: 1
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -1352,5 +1352,5 @@ AssetOrigin:
   productId: 338096
   packageName: Female Zombie Animations
   packageVersion: 1.0
-  assetPath: Assets/ZombieFemaleAnimations/Art/Animations/ZombieFemale_Run01Forward.FBX
+  assetPath: Assets/ZombieFemaleAnimations/Art/Animations/ZombieFemale_HitReactLLeg01.FBX
   uploadId: 803404

@@ -34,11 +34,10 @@ public class ZombieAnimator : MonoBehaviour
     }
 
 
-    // AIZombieController.Update에서 매 프레임 호출 — 상태에 따라 Speed 보간
-    public void UpdateState(EZombieState state)
+    // AIZombieController.Update에서 매 프레임 호출
+    public void UpdateState(EZombieState state, ESpeedType speedType)
     {
-        float targetSpeed = (state == EZombieState.Chase) ? 1f : 0f;
-        SmoothedSpeed = Mathf.MoveTowards(SmoothedSpeed, targetSpeed, Time.deltaTime / MoveDampTime);
+        SmoothedSpeed = Mathf.MoveTowards(SmoothedSpeed, (float)speedType, Time.deltaTime / MoveDampTime);
         Anim.SetFloat(HashSpeed, SmoothedSpeed);
     }
 

@@ -5,79 +5,46 @@
 - [ ] 이동 중 인벤토리 열기 시 이동 입력이 유지되어 계속 이동하는 버그
 
 
-## 최우선
+## 다음 작업
+- [ ] 아이템 3D 모델링 제작
+- [ ] 에디터 베이킹 툴 구현 (ItemIconBaker.cs — 모델 → 아이콘 PNG 자동 생성)
+- [ ] 장비 장착 시 장비 오브젝트를 캐릭터에 부착 (조끼, 가방 등)
 
 
 
 
 ---
-
-## 3단계 — 씬 분할
-- [v] 씬 분할 (Player, UI, Mgr)
-
-- [v] 씬 전환 — 출격 (Interactable_Deploy) · 귀환 (EscapeZone — 체류 타이머)
-- [v] 사망 시 아이템 손실 + 은신처 귀환
-
-
-
----
-
-### 소음 시스템
-- [ ] 소음 시스템
-- [ ] 좀비 Alert 상태 연동 (소리 감지 → 해당 방향 이동)
-- [ ] 좀비 시각/청각 탐지 → 추격 → 공격
-
----
-
-## 4단계 — 적 (좀비) ← 게임 루프 이후 재개
-- [v] 좀비 피격 / 사망 처리 (TakeDamage HP 감소·로그·PlayHit, OnDeath 기본 구조)
-- [ ] 플레이어가 좀비에게 받는 데미지 설정
-- [ ] 좀비 애니메이션 추가 (Death · Hit · Attack 클립 제작 및 컨트롤러 연결)
-- [v] 좀비 애니메이션 연동 코드 (ZombieAnimator — UpdateState · PlayAttack · PlayHit · PlayDeath)
-  - [v] 이동
-  - [v] 상태 머신 — Idle / Alert / Chase / Attack 전환
-  - [v] 감지 — 거리·각도·레이캐스트 + 컨택 시스템
-  - [ ] 공격 — 공격 범위 내 진입 시 플레이어에게 데미지
-  - [ ] 피격 — 플레이어 공격에 맞았을 때 반응 (피격 중 이동 멈춤 등)
-  - [ ] 사망 — OnDeath 완성 (Destroy, 아이템 드롭 등)
 
 ---
 
 ## 나중에
-- [ ] 장비 장착 시 장비 오브젝트를 캐릭터에 부착 (조끼, 가방 등)
 
-- [ ] 지도 (씬 전환)
+### 적 (좀비)
+- [ ] 플레이어 행동별 MakeNoise 연결 (걷기 · 달리기 · 공격 · 착지)
+- [ ] 좀비 애니메이션 클립 제작 (Death · Hit · Attack)
+- [ ] 플레이어 데미지 — ZombieHitBox 콜라이더 방식 (Enable/Disable 애니메이션 이벤트)
+- [ ] 공격 중 플레이어 방향 회전
+- [ ] 사망 후처리 — Destroy · 아이템 드롭
 
-- [ ] 저장 시스템
-
-- [ ] 아이템 3D 모델링 제작
-- [ ] 에디터 베이킹 툴 구현 (ItemIconBaker.cs — 모델 → 아이콘 PNG 자동 생성)
-
-
+### 전투
 - [ ] 데미지 임팩트 (피격 이펙트, 사운드, 히트스톱 등)
-
-
 - [ ] 무기 베이스 클래스 설계 (총기) [모딩시스템] [탄약 관리]
 - [ ] 총기 발사 / 재장전 세부 구현 + 애니메이션
 
-- [ ] 회복 아이템 클래스 설계 (Item_Food)
-- [ ] 음식 아이템 추가 (Item_Food 구현 및 생존 스탯 연동, 사용 버튼 )
-
-
+### 플레이어
 - [ ] 플레이어 스테미너 시스템
-
-
-- [ ] 은신처 강화 시스템
-
+- [ ] 사망 연출 (눈 감기 → 페이드아웃)
 - [ ] 감염 시스템 (회복 아이템에 감염 치료 / 감염 늦추기 변수 추가)
 
-
-
-
-- [ ] 사망 연출 (눈 감기 → 페이드아웃)
-
-
+### 아이템 / 인벤토리
 - [ ] InventoryData에 총 무게 계산 함수 추가
+- [ ] 회복 아이템 클래스 설계 (Item_Food)
+- [ ] 음식 아이템 추가 (Item_Food 구현 및 생존 스탯 연동, 사용 버튼)
+
+### 월드
+- [ ] 지도 (씬 전환)
+- [ ] 저장 시스템
+- [ ] 은신처 강화 시스템
 
 
 
@@ -100,8 +67,22 @@
 
 ## 완료
 
-### 적 (좀비)
-- [v] 좀비 베이스 AI (Character_Zombie · AIZombieController — 시야 감지 · 컨택 시스템 · 상태 머신 · 추격 · 공격)
+### 씬 분할
+- [v] 씬 분할 (Player, UI, Mgr)
+- [v] 씬 전환 — 출격 (Interactable_Deploy) · 귀환 (EscapeZone — 체류 타이머)
+- [v] 사망 시 아이템 손실 + 은신처 귀환
+- [v] UI_EscapeTimer 프리팹 제작 및 Mgr_UI 인스팩터 연결
+
+### 소음 시스템
+- [v] Mgr_Noise — MakeNoise (OverlapSphere + NavMesh 경로 거리 체크 + 태그 기반 좀비 감지)
+- [v] NoiseWave — LineRenderer 파동 시각화 (반지름까지 확장 후 페이드)
+- [v] 좀비 소음 감지 — OnNoiseDetected → Alert 전환 · 이동
+
+### 좀비 행동 패턴
+- [v] AIZombieController — 우선순위 상태 머신 (Death > Hit > Attack > Chase > Alert > Idle)
+- [v] 시각 감지 — 거리 · 각도 · 레이캐스트, Contact/Forget 타이머
+- [v] 피격/사망 파이프라인 — Character_Zombie → ZombieAnimator · AIZombieController 연결
+- [v] 좀비 애니메이션 연동 (ZombieAnimator — 이동 · 공격 · 피격 · 사망)
 
 ### 전투
 - [v] 플레이어 체력 시스템 + 회복기능 + 플레이어 상태창 (체력)
