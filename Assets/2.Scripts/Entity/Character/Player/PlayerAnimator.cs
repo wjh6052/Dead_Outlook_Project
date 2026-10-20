@@ -45,6 +45,7 @@ public class PlayerAnimator : MonoBehaviour
     private int  HashIsFocusing;
     private int  HashFocusType;
     private int  HashOnFocusStart;
+    private int  HashOnGrabbed;
     private bool PrevIsFocusing;
     #endregion
 
@@ -68,10 +69,11 @@ public class PlayerAnimator : MonoBehaviour
         HashIsFocusing      = Animator.StringToHash("IsFocusing");
         HashFocusType       = Animator.StringToHash("FocusType");
         HashOnFocusStart    = Animator.StringToHash("OnFocusStart");
+        HashOnGrabbed       = Animator.StringToHash("OnGrabbed");
     }
 
     // PlayerMovement의 AfterCharacterUpdate에서 호출 — 애니메이터 파라미터 갱신
-    public void UpdateAnimator(EStanceType stanceType, ESpeedType speedType, bool isGrounded, bool isAim, bool doJump, Vector2 moveInput)
+    public void UpdateAnimator(EStanceType stanceType, ESpeedType speedType, bool isGrounded, bool isAim, bool doJump, Vector2 moveInput, bool isGrabbed)
     {
         // 이동 방향 보간
         float moveStep = Time.deltaTime / MoveDampTime;
@@ -85,10 +87,14 @@ public class PlayerAnimator : MonoBehaviour
         Anim.SetFloat(HashSpeedType, SmoothedSpeedType);
 
         // 웅크리기/일어서기 트리거 — 상태 전환 첫 프레임에만 발동
-        if (PrevStanceType != EStanceType.Crouch && stanceType == EStanceType.Crouch)
-            Anim.SetTrigger(HashOnCrouch);
-        else if (PrevStanceType == EStanceType.Crouch && stanceType != EStanceType.Crouch)
-            Anim.SetTrigger(HashOnStand);
+        // 잡혀 있는 동안에는 트리거 없이 자세 기록만 갱신 (잡힘 애니메이션이 끊기지 않도록)
+        if (!isGrabbed)
+        {
+            if (PrevStanceType != EStanceType.Crouch && stanceType == EStanceType.Crouch)
+                Anim.SetTrigger(HashOnCrouch);
+            else if (PrevStanceType == EStanceType.Crouch && stanceType != EStanceType.Crouch)
+                Anim.SetTrigger(HashOnStand);
+        }
         PrevStanceType = stanceType;
 
         // 상태 플래그
@@ -128,10 +134,14 @@ public class PlayerAnimator : MonoBehaviour
     public void PlayTakeWeapon()    => Anim.SetTrigger(HashTakeWeapon);
     public void PlayHolsterWeapon() => Anim.SetTrigger(HashHolsterWeapon);
 
+    // 잡힘 → 물림 → 밀치기 재생 — 이후 단계는 애니메이터에서 Exit Time으로 연결
+    public void PlayGrabbed() => Anim.SetTrigger(HashOnGrabbed);
+
     // 지정한 레이어를 Empty 상태로 부드럽게 전환 — 애니메이션 종료 시 사용
     public void PlayEmpty(EAnimatorLayer layer) => Anim.CrossFade("Empty", 0.2f, (int)layer);
 
-    public void PlayAttack(Item_Weapon weapon, int Combo)
+    // 무기·콤보에 맞는 공격 애니메이션 재생 — 해당 애니메이션이 없으면 false 반환
+    public bool PlayAttack(Item_Weapon weapon, int Combo)
     {
         string stateName = "";
 
@@ -146,9 +156,13 @@ public class PlayerAnimator : MonoBehaviour
                 break;
         }
 
-        if (Anim.HasState((int)EAnimatorLayer.Full, Animator.StringToHash($"{stateName}_Attack_{Combo}")))
-            Anim.CrossFade($"{stateName}_Attack_{Combo}", 0.1f, (int)EAnimatorLayer.Full);
-        else
-            Debug.Log($"[{stateName}_Attack_{Combo}] 애니메이션이 없음");
+        if (Anim.HasState((int)EAnimatorLayer.Upper, Animator.StringToHash($"{stateName}_Attack_{Combo}")))
+        {
+            Anim.CrossFade($"{stateName}_Attack_{Combo}", 0.1f, (int)EAnimatorLayer.Upper);
+            return true;
+        }
+
+        Debug.Log($"[{stateName}_Attack_{Combo}] 애니메이션이 없음");
+        return false;
     }
 }

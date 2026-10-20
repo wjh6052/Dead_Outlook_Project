@@ -10,6 +10,7 @@ public enum EGameState
     Stop   // 사망 등 게임을 멈춰야 할 때
 }
 
+// 씬 파일 이름은 "열거형 이름 + _Scene" 규칙 (예: Hideout → Hideout_Scene)
 public enum EScene
 {
     Hideout, // 은신처
@@ -18,10 +19,6 @@ public enum EScene
 
 public class Mgr_Game : MonoBehaviour
 {
-
-    [Header("씬 이름")]
-    [SerializeField] public string Hideout_SceneName = "Hideout_Scene";
-    [SerializeField] public string Field_SceneName   = "Field_Scene";
 
     [Header("GameState")]
     [field: SerializeField] public EGameState GameState { get; private set; } = EGameState.Play;
@@ -59,6 +56,12 @@ public class Mgr_Game : MonoBehaviour
     }
 
 
+    // EScene → 씬 파일 이름 변환 (예: EScene.Hideout → "Hideout_Scene")
+    public static string GetSceneName(EScene scene)
+    {
+        return scene + "_Scene";
+    }
+
     // 씬 전환 — EScene으로 목적지 지정
     public void ChangeScene(EScene scene)
     {
@@ -68,14 +71,20 @@ public class Mgr_Game : MonoBehaviour
         switch (scene)
         {
             case EScene.Hideout:
-                if (SceneManager.GetSceneByName(Field_SceneName).isLoaded)
-                    SceneManager.UnloadSceneAsync(Field_SceneName); // 필드 종료
+                // 로드된 필드 씬 전부 종료
+                foreach (EScene fieldScene in System.Enum.GetValues(typeof(EScene)))
+                {
+                    if (fieldScene == EScene.Hideout) continue;
+                    if (SceneManager.GetSceneByName(GetSceneName(fieldScene)).isLoaded)
+                        SceneManager.UnloadSceneAsync(GetSceneName(fieldScene)); // 필드 종료
+                }
                 Mgr_Hideout.Inst.SetHideout(true);                  // 은신처 로드
                 break;
 
-            case EScene.Field:
+            // Hideout이 아닌 씬은 모두 필드로 취급
+            default:
                 Mgr_Hideout.Inst.SetHideout(false);             // 은신처 종료
-                LoadSceneIfNotLoaded(Field_SceneName);          // 필드 로드
+                LoadSceneIfNotLoaded(GetSceneName(scene));      // 필드 로드
                 break;
         }
     }
@@ -98,7 +107,7 @@ public class Mgr_Game : MonoBehaviour
                 break;
             case EGameState.Stop:
                 {
-
+                    Mgr_Camera.Inst.SetCursorLock(true); // 조작 불가 상태 — UI가 없으니 커서 숨김
                 }
                 break;
         }

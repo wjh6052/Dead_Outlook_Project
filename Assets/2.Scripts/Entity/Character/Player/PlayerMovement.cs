@@ -32,7 +32,8 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     [field: SerializeField] public EStanceType StanceType   { get; private set; } // 자세 상태 (Stand / Crouch / Air)
     [field: SerializeField] public ESpeedType  SpeedType    { get; private set; } // 이동 속도 상태 (Idle / Walk / Run)
     [field: SerializeField] public bool        bIsGrounded  { get; private set; } // 지면 접촉 여부
-    
+    [field: SerializeField] public bool        IsGrabbed    { get; private set; } // 좀비에게 잡혀 있는지 여부
+
     #endregion
 
 
@@ -58,6 +59,7 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     [HideInInspector] public bool doJump; // 이번 프레임 점프 실행 플래그
 
     private Vector3 RootMotionVelocity; // 루트 모션 속도 캐시 — OnAnimatorMove에서 갱신
+    private static readonly int HashRootMotionTag = UnityEngine.Animator.StringToHash("RootMotion"); // 루트 모션으로 이동할 애니메이터 상태 태그
 
     private Character_Player        Player;   // 플레이어 엔티티
     private KinematicCharacterMotor KCC;      // KCC 물리 처리 컴포넌트
@@ -127,6 +129,41 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         return (forward * MoveInput.y + right * MoveInput.x).normalized;
     }
 
+    // 대상 위치를 향해 즉시 회전 — 높이 차이는 무시하고 수평으로만 회전
+    public void LookAt(Vector3 targetPosition)
+    {
+        Vector3 dir = Vector3.ProjectOnPlane(targetPosition - KCC.TransientPosition, Vector3.up);
+        if (dir.sqrMagnitude < 0.0001f) return; // 같은 위치면 방향을 정할 수 없음
+
+        KCC.SetRotation(Quaternion.LookRotation(dir)); // KCC가 회전을 관리하므로 transform 대신 KCC로 지정
+    }
+
+    // 잡힘 — Character_Player.OnGrabbed에서 호출
+    // grabberPosition : 잡은 좀비의 위치 (회전 방향 계산용)
+    public void OnGrabbed(Vector3 grabberPosition)
+    {
+        IsGrabbed = true;
+        SetCrouch(false);         // 웅크리기 — 선 자세로 초기화
+        LookAt(grabberPosition);  // 좀비 방향으로 즉시 회전
+    }
+
+    // 잡힘 종료 — Character_Player.OnGrabEnd에서 호출
+    public void OnGrabEnd()
+    {
+        IsGrabbed = false;
+    }
+
+    // 현재 재생 중인 상태에 RootMotion 태그가 있는지 확인 — 전환 중이면 다음 상태도 확인
+    private bool IsRootMotionState()
+    {
+        for (int layer = 0; layer < Anim.layerCount; layer++)
+        {
+            if (Anim.GetCurrentAnimatorStateInfo(layer).tagHash == HashRootMotionTag) return true;
+            if (Anim.IsInTransition(layer) && Anim.GetNextAnimatorStateInfo(layer).tagHash == HashRootMotionTag) return true;
+        }
+        return false;
+    }
+
 
     #region KCC — 매 프레임 호출
     // KCC 업데이트 전 호출 — 입력 전처리, 상태 변경 등 선행 작업
@@ -151,8 +188,8 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     {
         if (KCC.GroundingStatus.IsStableOnGround)
         {
-            // 공격 중이면 루트 모션 속도 사용 — 애니메이션의 XZ 이동을 KCC에 전달
-            if (Player.IsAttack)
+            // RootMotion 태그 상태면 루트 모션 속도 사용 — 애니메이션의 XZ 이동을 KCC에 전달
+            if (IsRootMotionState())
             {
                 currentVelocity = RootMotionVelocity;
                 return;
@@ -211,7 +248,7 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         else if (!bPrevGrounded) SetCrouch(false); // 착지 순간 Stand로 복귀
         bPrevGrounded = bIsGrounded;
 
-        Animator.UpdateAnimator(StanceType, SpeedType, bIsGrounded, bAim, doJump, MoveInput);
+        Animator.UpdateAnimator(StanceType, SpeedType, bIsGrounded, bAim, doJump, MoveInput, IsGrabbed);
     }
     #endregion
 

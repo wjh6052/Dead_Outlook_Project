@@ -40,6 +40,13 @@ public class Mgr_PlayerController : MonoBehaviour
 
             UpdateInteractables();
         }
+        else
+        {
+            // Play가 아닐 때(UI·Stop) 마지막 입력이 남아 계속 움직이지 않도록 입력 없음으로 전달
+            Character_Player.Inst.Movement.MoveInput = Vector2.zero;
+            Character_Player.Inst.Movement.bAim      = false;
+            Character_Player.Inst.Movement.bRunInput = false;
+        }
     }
 
     // 시야 상태 갱신 + 레이캐스트 포커스 탐색
@@ -107,6 +114,8 @@ public class Mgr_PlayerController : MonoBehaviour
     // 상호작용 / Mgr_Input에서 F를 눌렀을 경우 호출
     public void OnInteractable()
     {
+        if (Mgr_Game.Inst.GameState != EGameState.Play) return; // UI · 잡힘 등 조작 불가 상태면 무시
+
         if (FocusedInteractable != null)
         {
             //Debug.Log(FocusedInteractable.gameObject.name);

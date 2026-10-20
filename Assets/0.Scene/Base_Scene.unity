@@ -163,8 +163,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab7d21c66b2ba1c4097a393aac1cf9b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Mgr_Game
-  Hideout_SceneName: Hideout_Scene
-  Field_SceneName: Field_Scene
   <GameState>k__BackingField: 0
 --- !u!1 &352234521
 GameObject:
@@ -195,6 +193,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0379deb4316e1c43ab43d30d05aff15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Test_
+  Test_Character_Zombie: {fileID: 0}
+  NoiseIntensity: 4
+  NoiseRadius: 10
 --- !u!4 &352234523
 Transform:
   m_ObjectHideFlags: 0
@@ -418,7 +419,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8681d902f86ed6846a738ba28be822b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Mgr_Hideout
-  HideoutSceneName: Hideout_Scene
   <IsOnHideout>k__BackingField: 0
   StorageData:
     GridWidth: 15

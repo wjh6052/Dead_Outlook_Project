@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NoiseWave
   Segments: 32
   LineWidth: 0.05
+  ExpandRatio: 0.6
 --- !u!120 &86072822059453176
 LineRenderer:
   serializedVersion: 3
@@ -119,7 +120,7 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
+      key0: {r: 0, g: 0, b: 0, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}

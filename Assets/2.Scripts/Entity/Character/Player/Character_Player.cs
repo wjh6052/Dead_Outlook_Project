@@ -56,6 +56,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     public void TakeDamage(float damage, GameObject attacker, GameObject attackerOwner)
     {
         HP = Mathf.Max(HP - damage, 0f);
+        Debug.Log($"[{name}] {attacker.name}에게 {damage} 데미지 — 남은 HP: {HP}/{MaxHP}");
         if (HP <= 0f) OnDeath();
     }
 
@@ -132,6 +133,33 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         Debug.Log($"플레이어 죽음 / 현재 체력:{HP}");
         InventoryComp.ClearInventory();          // 보유 아이템 전체 손실
         Mgr_Game.Inst.ChangeScene(EScene.Hideout); // 은신처로 귀환
+    }
+
+    #endregion
+
+
+    #region 잡힘 ---------------------------------------
+
+    // 좀비에게 잡힘 — AIZombieController.UpdateAttack에서 호출
+    // zombie : 잡은 좀비 (플레이어 회전 방향 계산에 사용)
+    public void OnGrabbed(Character_Zombie zombie)
+    {
+        Mgr_UI.Inst.Reset();                         // 열려 있던 인벤토리 · 컨텍스트 메뉴 · 상호작용 표시 닫기
+        Mgr_Game.Inst.SetGameState(EGameState.Stop); // 조작 · 카메라 잠금
+
+        // 하던 행동 취소
+        if (IsAttack) OnAttackEnd(); // 공격 — 콤보 초기화 + Upper Body 레이어 비우기
+        IsFocusing = false;          // 아이템 사용 — FocusCoroutine이 감지해 취소 (아이템 소모 없음)
+
+        Movement.OnGrabbed(zombie.transform.position); // 잡힘 상태 · 자세 초기화 · 좀비 방향 회전 — 애니메이션보다 먼저
+        Animator.PlayGrabbed();
+    }
+
+    // 잡힘 종료 — Player_Push 애니메이션 마지막 프레임 이벤트로 호출
+    public void OnGrabEnd()
+    {
+        Movement.OnGrabEnd();                        // 잡힘 상태 해제
+        Mgr_Game.Inst.SetGameState(EGameState.Play); // 조작 · 카메라 잠금 해제
     }
 
     #endregion
@@ -256,24 +284,31 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
     // 공격 애니메이션 중간 프레임 이벤트로 호출
     // → 콤보 입력 윈도우를 열고, 이미 예약된 콤보가 있으면 즉시 다음 공격 실행
+    // → 예약된 콤보가 없으면 공격 종료
     public void OnAttackCombo()
     {
-        if (NextCombo == false) return;
+        // 다음 콤보 예약이 없으면 공격 종료
+        if (NextCombo == false)
+        {
+            OnAttackEnd();
+            return;
+        }
 
         // Attack()에서 미리 예약한 콤보 → 즉시 다음 공격
         NextCombo = false;
         ComboCount++;
-        Animator.PlayAttack(CurrentWeapon.WeaponData, ComboCount);
+        if (!Animator.PlayAttack(CurrentWeapon.WeaponData, ComboCount))
+            OnAttackEnd(); // 다음 콤보 애니메이션이 없으면 (마지막 콤보) 공격 종료
     }
 
-    // 공격 애니메이션 끝 프레임 이벤트로 호출
-    // → OnAttackEnd가 호출됐다는 것은 OnAttackCombo에서 콤보가 이어지지 않았다는 의미 → 공격 종료
+    // 공격 종료 — OnAttackCombo(콤보가 이어지지 않음) · OnGrabbed(잡혀서 공격 취소)에서 호출
+    // → 콤보 초기화 + Upper Body 레이어 비우기
     public void OnAttackEnd()
     {
         ComboCount = 0;
         IsAttack = false;
         NextCombo  = false;
-        Animator.PlayEmpty(EAnimatorLayer.Full);
+        Animator.PlayEmpty(EAnimatorLayer.Upper);
     }
 
     // 애니메이션 이벤트 — "true": 히트박스 활성화 / "false": 히트박스 비활성화

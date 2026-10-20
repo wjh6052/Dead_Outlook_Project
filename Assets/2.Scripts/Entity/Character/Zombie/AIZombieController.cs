@@ -18,9 +18,6 @@ public enum EZombieState
 // - NavMeshAgent 기반 이동 · 상태 머신 · 시각/소음 감지 · 추격 · 공격
 public class AIZombieController : MonoBehaviour
 {
-    [Header("테스트")]
-    [SerializeField] private GameObject ContactObject; // 컨택 테스트용 오브젝트
-
     [Header("상태")]
     [SerializeField] private EZombieState State = EZombieState.Idle;
 
@@ -31,15 +28,14 @@ public class AIZombieController : MonoBehaviour
     [SerializeField] private FTimer Contact_Timer;             // 컨택 타이머 (Max = 컨택까지 필요한 시야 유지 시간)
     [SerializeField] private FTimer Forget_Timer;              // 망각 타이머 (Max = 시야를 잃었을 때 잊기까지 시간)
 
-    [Header("이동")]
-    [SerializeField] private float WalkSpeed = 1f; // 걷기 속도 (Alert)
-    [SerializeField] private float RunSpeed  = 3f; // 뛰기 속도 (Chase)
-
     [Header("소음 감지")]
     [SerializeField] private float NoiseResistance = 3f; // 이 값 미만의 소음 강도는 무시
 
     [Header("경계")]
     [SerializeField] private FTimer Alert_Timer; // 경계 타이머 (Max = 경계 상태 유지 시간)
+
+    [Header("피격")]
+    [SerializeField] private FTimer Hit_Timer; // 피격 경직 타이머 (Max = 맞은 뒤 행동하지 못하는 시간)
 
     [Header("공격")]
     [SerializeField] private float  AttackRange  = 1.5f; // 공격 거리
@@ -47,8 +43,9 @@ public class AIZombieController : MonoBehaviour
 
     // 런타임 상태
     [Header("탐지된 타겟")]
-    [SerializeField] private Character_Player Target;      // 시각으로 감지한 플레이어 (null = 미감지)
-    private Vector3          NoisePoint;   // 소음 발생 위치
+    [field: SerializeField] public Character_Player Target { get; private set; } // 시각으로 감지한 플레이어 (null = 미감지)
+    private Vector3          AlertPoint;       // 경계 상태에서 확인하러 갈 위치 (소음 발생 위치 · 마지막으로 본 플레이어 위치)
+    private Vector3          LastSeenPosition; // 마지막으로 본 플레이어 위치
     private ESpeedType       SpeedType;    // 현재 이동 속도 타입 (ChangeState에서 갱신)
     private bool             IsHit;        // 피격 이벤트 발생 여부
     private bool             IsAttacking;  // 공격 애니메이션 진행 중 여부
@@ -66,18 +63,16 @@ public class AIZombieController : MonoBehaviour
         Agent.stoppingDistance = AttackRange;
 
         Alert_Timer.Current = Alert_Timer.Max; // 시작 시 경계 타이머를 만료 상태로 초기화
-
-        ContactObject.SetActive(false);
     }
 
     private void Update()
     {
         // 시각 감지
         UpdateVisualDetection();
-
+        
         // 상태 설정
         UpdateState();
-
+        
         // 상태별 행동 함수 호출
         switch (State)
         {
@@ -87,7 +82,7 @@ public class AIZombieController : MonoBehaviour
             case EZombieState.Attack: UpdateAttack(); break;
             case EZombieState.Hit:    UpdateHit();    break;
         }
-
+        
         // 매 프레임 현재 상태를 애니메이터에 반영 (SpeedType은 ChangeState에서 갱신)
         Zombie.ZombieAnim.UpdateState(State, SpeedType);
     }
@@ -138,7 +133,7 @@ public class AIZombieController : MonoBehaviour
                 break;
 
             case EZombieState.Chase:
-                SetSpeedType(ESpeedType.Run);  // 뛰기
+                SetSpeedType(ESpeedType.Walk); // 걷기
                 Alert_Timer.Reset();           // 경계 타이머 초기화
                 break;
 
@@ -165,8 +160,7 @@ public class AIZombieController : MonoBehaviour
         SpeedType = speedType;
         Agent.speed = speedType switch
         {
-            ESpeedType.Walk => WalkSpeed,
-            ESpeedType.Run => RunSpeed,
+            ESpeedType.Walk => Zombie.WalkSpeed,
             _ => 0f,
         };
 
@@ -195,7 +189,10 @@ public class AIZombieController : MonoBehaviour
 
             // 컨택 타이머 완료 시 플레이어 저장
             if (Contact_Timer.IsReached)
-                Target = player;
+            {
+                Target           = player;
+                LastSeenPosition = player.transform.position; // 보이는 동안 위치 기록
+            }
         }
         else if (Contact_Timer.IsReached)
         {
@@ -205,6 +202,7 @@ public class AIZombieController : MonoBehaviour
             {
                 // 망각 시간 초과 → 플레이어를 잊음
                 Target = null;
+                AlertPoint = LastSeenPosition; // 마지막으로 본 위치를 확인하러 감 (경계 상태)
                 Contact_Timer.Reset();
                 Forget_Timer.Reset();
             }
@@ -214,8 +212,6 @@ public class AIZombieController : MonoBehaviour
             // 컨택 전 시야를 잃으면 즉시 리셋
             Contact_Timer.Reset();
         }
-
-        ContactObject.SetActive(Contact_Timer.IsReached);
     }
 
     // 시야 내 플레이어를 반환, 없으면 null
@@ -263,7 +259,7 @@ public class AIZombieController : MonoBehaviour
         // 내성 미만의 소음은 무시
         if (intensity < NoiseResistance) return;
 
-        NoisePoint = position;
+        AlertPoint = position;
         Alert_Timer.Reset(); // 경계 타이머 시작
     }
     #endregion
@@ -279,10 +275,10 @@ public class AIZombieController : MonoBehaviour
 
 
     #region 경계
-    // 경계 상태 — NoisePoint로 이동, 도착 후 타이머 누적
+    // 경계 상태 — AlertPoint로 이동, 도착 후 타이머 누적
     private void UpdateAlert()
     {
-        Agent.SetDestination(NoisePoint);
+        Agent.SetDestination(AlertPoint);
 
         // 목적지에 도착했을 때만 타이머 누적
         if (!Agent.pathPending && Agent.remainingDistance <= Agent.stoppingDistance)
@@ -302,10 +298,11 @@ public class AIZombieController : MonoBehaviour
 
 
     #region 피격
-    // 피격 상태
+    // 피격 상태 — 경직 시간이 지나면 해제 (OnHit에서 Hit_Timer 초기화)
     private void UpdateHit()
     {
-
+        Hit_Timer.Tick();
+        if (Hit_Timer.IsReached) IsHit = false;
     }
 
     // Character_Zombie.OnHit에서 호출
@@ -316,15 +313,10 @@ public class AIZombieController : MonoBehaviour
             Target = attacker.GetComponentInParent<Character_Player>();
 
         IsHit = true;
+        Hit_Timer.Reset(); // 맞을 때마다 경직 시간을 처음부터
 
         if (IsAttacking) IsAttacking = false;
 
-    }
-
-    // 피격 종료 — Character_Zombie.EndHit에서 호출 (애니메이션 이벤트)
-    public void OnEndHit()
-    {
-        IsHit = false;
     }
 
     #endregion
@@ -336,13 +328,25 @@ public class AIZombieController : MonoBehaviour
     {
         if (IsAttacking) return; // 공격 애니메이션 진행 중이면 대기
 
-        Attack_Timer.Tick();
-        if (Attack_Timer.IsReached)
+        Attack_Timer.Tick(); // 쿨다운 시간 누적
+
+        if (Attack_Timer.IsReached) // 쿨다운이 끝나면 공격 시작
         {
             Debug.Log("좀비가 공격");
-            IsAttacking = true;
-            Zombie.ZombieAnim.PlayAttack();
-            Attack_Timer.Reset();
+
+            // 공격 조건 — 하나라도 맞지 않으면 공격하지 않음 (쿨다운은 찬 상태로 유지)
+            if (Target == null)    return; // 공격 대상 없음
+            if (Target.HP <= 0f)   return; // 플레이어 사망
+            if (Vector3.Distance(transform.position, Target.transform.position) > AttackRange) return; // 사거리 밖
+
+            Zombie.LookAt(Target.transform.position); // 플레이어 방향으로 즉시 회전
+            Target.OnGrabbed(Zombie); // 플레이어에게 잡힘 신호 — 좀비와 같은 프레임에 애니메이션 시작
+
+
+            Zombie.ZombieAnim.PlayAttack(); // 잡기 → 물기 → 밀치기 애니메이션 재생
+
+            IsAttacking = true;             // 공격 중 — EndAttack 이벤트 또는 피격 시 해제
+            Attack_Timer.Reset();           // 쿨다운 초기화 — 공격이 끝난 뒤부터 다시 누적
         }
     }
 
@@ -351,7 +355,7 @@ public class AIZombieController : MonoBehaviour
     {
         IsAttacking = false;
         Agent.Warp(transform.position); // NavMeshAgent 위치를 Root Motion이 이동한 위치로 동기화
-    }
+    }    
     #endregion
 
 

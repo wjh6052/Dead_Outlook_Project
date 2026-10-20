@@ -6,9 +6,6 @@ using UnityEngine.SceneManagement;
 public class Mgr_Hideout : MonoBehaviour
 {
 
-    [Header("씬")]
-    [SerializeField] private string HideoutSceneName = "Hideout_Scene";
-
     [field: SerializeField] public bool IsOnHideout { get; private set; } // 현재 은신처에 있는지 여부
 
     [Header("보관함")]
@@ -37,15 +34,17 @@ public class Mgr_Hideout : MonoBehaviour
     {
         IsOnHideout = isOn;
 
+        string hideoutSceneName = Mgr_Game.GetSceneName(EScene.Hideout);
+
         if (isOn)
         {
             // 이미 로드된 경우 중복 로드 방지
-            if (SceneManager.GetSceneByName(HideoutSceneName).isLoaded) return;
-            SceneManager.LoadScene(HideoutSceneName, LoadSceneMode.Additive);
+            if (SceneManager.GetSceneByName(hideoutSceneName).isLoaded) return;
+            SceneManager.LoadScene(hideoutSceneName, LoadSceneMode.Additive);
         }
         else
         {
-            SceneManager.UnloadSceneAsync(HideoutSceneName);
+            SceneManager.UnloadSceneAsync(hideoutSceneName);
         }
     }
 }
