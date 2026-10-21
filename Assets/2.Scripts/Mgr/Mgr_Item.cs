@@ -90,9 +90,20 @@ public class Mgr_Item : MonoBehaviour
             EItemType itemType = (EItemType)System.Enum.Parse(typeof(EItemType), dto.ItemType);
             ERarity rarity = (ERarity)System.Enum.Parse(typeof(ERarity), dto.Rarity);
 
-            Sprite icon = Resources.Load<Sprite>(dto.IconKey) ?? Resources.Load<Sprite>("UI/Icon/Temp_ItemIcon");
+            Sprite icon = Resources.Load<Sprite>(dto.IconKey);
+            if (icon == null)
+            {
+                Debug.LogWarning($"아이콘을 찾지 못했습니다 ({dto.ID}) — {dto.IconKey}");
+                icon = Resources.Load<Sprite>("UI/Icon/Icon_Temp"); // 경로가 틀리면 기본 아이콘으로 대체
+            }
+
             string     prefabKey = string.IsNullOrEmpty(dto.PrefabKey) ? "Prefab/Item/PF_TestItem" : dto.PrefabKey;
             GameObject prefab    = Resources.Load<GameObject>(prefabKey);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"프리팹을 찾지 못했습니다 ({dto.ID}) — {prefabKey}");
+                prefab = Resources.Load<GameObject>("Prefab/Item/PF_TestItem"); // 경로가 틀리면 테스트 프리팹으로 대체
+            }
 
             Item item;
             switch (itemType)

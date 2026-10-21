@@ -9,11 +9,15 @@ public enum EFocusType
 public class Character_Player : MonoBehaviour, IDamageable, IInventory
 {
     #region 스텟 변수 ---------------------------------------
-    [Header("스텟")]
+
+    [field: Header("스텟")]
+    [field: Tooltip("최대 체력")]
     [field: SerializeField] public float MaxHP      { get; private set; } = 100f;
+    [field: Tooltip("현재 체력")]
     [field: SerializeField] public float HP         { get; private set; }
+    [Tooltip("아이템 사용 집중 중 여부")]
     public bool IsFocusing; // 아이템 사용 집중 중
-    public EFocusType FocusType { get; private set; } // 아이템 사용 집중 중
+    public EFocusType FocusType { get; private set; } // 아이템 사용 집중 중 — 집중 중인 행동 종류 (치료 등)
 
 
     #endregion
@@ -21,21 +25,23 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
     #region 카메라 ---------------------------------------
     [Header("카메라")]
-    private float CameraStandHeight;
+    [Tooltip("웅크렸을 때 카메라 높이")]
     public  float CameraCrouchHeight = 0.9f;
+    [Tooltip("서기 ↔ 웅크리기 카메라 높이 전환 속도")]
     public  float CameraHeightSpeed  = 10f;
-    public Transform CameraTarget { get; private set; }
+    private float CameraStandHeight;                    // 서 있을 때 카메라 높이 — 시작 시 CameraTarget 높이로 저장
+    public Transform CameraTarget { get; private set; } // 카메라가 따라가는 지점 (자식 오브젝트 CameraTarget)
     #endregion 
 
 
     #region 컴포넌트 ---------------------------------------
 
-    public PlayerMovement     Movement      { get; private set; }
-    public PlayerAnimator     Animator      { get; private set; }
-    public InventoryComponent InventoryComp { get; private set; }
-    public MeshComponent      MeshComp      { get; private set; }
+    public PlayerMovement     Movement      { get; private set; } // 이동 · 자세 · 회전 · 루트 모션
+    public PlayerAnimator     Animator      { get; private set; } // 애니메이터 파라미터 · 트리거
+    public InventoryComponent InventoryComp { get; private set; } // 인벤토리 · 무기 장착
+    public MeshComponent      MeshComp      { get; private set; } // 뼈 · 무기 소켓 · IK 참조
 
-    public static Character_Player Inst { get; private set; }
+    public static Character_Player Inst { get; private set; } // 플레이어 싱글톤
     #endregion 
 
     private void Awake()
@@ -195,8 +201,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
     #region IInventory ---------------------------------------
 
+    [field: Tooltip("현재 선택된 무기 슬롯 (1·2 = 무기, 3 = 맨손)")]
     [field: SerializeField] public int CurrentWeaponSlot { get; private set; } // 현재 선택된 무기 슬롯 (1·2=무기, 3=맨손)
-    public Weapon CurrentWeapon { get; private set; } // 현재 손에 들고 있는 무기
+    public EquipItem_Weapon CurrentWeapon { get; private set; } // 현재 손에 들고 있는 무기
 
 
     // 무기 슬롯 선택 — 1·2번은 해당 슬롯 무기 장착, 3번은 해제
@@ -228,9 +235,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     {
         // TakeWeapon 애니메이션 시작 전 모든 무기를 소켓 위치로 초기화
         if (InventoryComp.Weapon_1 != null)
-            InventoryComp.Weapon_1.transform.SetParent(MeshComp.WeaponSocket_1, false);
+            InventoryComp.Weapon_1.AttachToHolster(MeshComp.WeaponSocket_1);
         if (InventoryComp.Weapon_2 != null)
-            InventoryComp.Weapon_2.transform.SetParent(MeshComp.WeaponSocket_2, false);
+            InventoryComp.Weapon_2.AttachToHolster(MeshComp.WeaponSocket_2);
 
         switch (CurrentWeaponSlot)
         {
@@ -248,8 +255,11 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
 
     [Header("콤보")]
+    [Tooltip("현재 콤보 단계 (0 = 미공격, 1 = 첫 번째, 2 = 두 번째 ...)")]
     public int  ComboCount = 0; // 현재 콤보 단계 (0 = 미공격, 1 = 첫 번째, 2 = 두 번째 ...)
+    [Tooltip("공격 중 여부")]
     public bool IsAttack = false; // 콤보 입력 윈도우가 열려있는지
+    [Tooltip("다음 콤보 예약 여부")]
     public bool NextCombo = false; // 다음 콤보가 예약됐는지
 
     // 공격 입력 — Mgr_PlayerController에서 호출
@@ -312,7 +322,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     }
 
     // 애니메이션 이벤트 — "true": 히트박스 활성화 / "false": 히트박스 비활성화
-    public void OnCollider(string value) => (CurrentWeapon as Weapon_Melee)?.OnCollider(value == "true");
+    public void OnCollider(string value) => (CurrentWeapon as EquipItem_Weapon_Melee)?.OnCollider(value == "true");
 
 
     // HolsterWeapon 애니메이션 끝 프레임 이벤트로 호출
@@ -325,7 +335,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
             Transform socket = CurrentWeapon == InventoryComp.Weapon_1
                 ? MeshComp.WeaponSocket_1
                 : MeshComp.WeaponSocket_2;
-            CurrentWeapon.transform.SetParent(socket, false);
+            CurrentWeapon.AttachToHolster(socket);
 
             MeshComp.Target_Hand_L.SetParent(MeshComp.StartTarget_Hand_L, false);
             MeshComp.Target_Hand_L.localPosition = Vector3.zero;
@@ -345,7 +355,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         if (attach == "true")
         {
             if (CurrentWeapon == null) return;
-            CurrentWeapon.transform.SetParent(MeshComp.HandSocket_R, false);
+            CurrentWeapon.AttachToHand(MeshComp.HandSocket_R);
 
             int weaponType = (int)CurrentWeapon.WeaponData.WeaponType + 1;
             int weaponMeleeType = CurrentWeapon.WeaponData is Item_Weapon_Melee melee ? (int)melee.WeaponMeleeType : 0;
@@ -360,7 +370,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         {
             if (CurrentWeapon == null) return;
             Transform socket = CurrentWeaponSlot == 1 ? MeshComp.WeaponSocket_1 : MeshComp.WeaponSocket_2;
-            CurrentWeapon.transform.SetParent(socket, false);
+            CurrentWeapon.AttachToHolster(socket);
             Animator.SetWeaponType(0, 0);
 
             MeshComp.Target_Hand_L.SetParent(MeshComp.StartTarget_Hand_L, false);

@@ -25,7 +25,7 @@ public class ZombieAnimator : MonoBehaviour
 
     private void Awake()
     {
-        Anim = GetComponent<Animator>();
+        Anim = GetComponentInChildren<Animator>(); // Animator는 자식 모델에 있음
 
         HashSpeed  = Animator.StringToHash("Speed");
         HashAttack = Animator.StringToHash("Attack");

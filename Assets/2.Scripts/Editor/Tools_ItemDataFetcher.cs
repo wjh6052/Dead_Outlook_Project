@@ -1,0 +1,113 @@
+using UnityEngine;
+using UnityEditor;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using GoogleSheetsToUnity;
+
+public class Tools_ItemDataFetcher : EditorWindow
+{
+    private static readonly string SheetID    = "1UCd3jIo20DEq1X40wNzIar4UIqBldI7rN66u5g6hwUc";
+    private static readonly string SavePath   = "Assets/Resources/Data/ItemData.json";
+
+    private static ItemDataList   DataList    = new ItemDataList();
+    private static int            TotalSheets;
+    private static int            LoadedSheets;
+
+    [MenuItem("Tools/Dead Outlook/구글시트 업데이트")]
+    public static void FetchItemData()
+    {
+        DataList     = new ItemDataList();
+        TotalSheets  = Enum.GetValues(typeof(EItemType)).Length;
+        LoadedSheets = 0;
+
+        Debug.Log("[Tools_ItemDataFetcher] 구글시트 데이터 가져오는 중...");
+
+        foreach (EItemType type in Enum.GetValues(typeof(EItemType)))
+        {
+            string    sheetName    = $"Item{type}_Sheet";
+            EItemType capturedType = type;
+
+            SpreadsheetManager.Read(new GSTU_Search(SheetID, sheetName),
+                sheet => OnSheetLoaded(sheet, capturedType));
+        }
+    }
+
+    private static void OnSheetLoaded(GstuSpreadSheet sheet, EItemType itemType)
+    {
+        foreach (var pair in sheet.rows.primaryDictionary)
+        {
+            if (pair.Key == 1) continue;
+
+            List<GSTU_Cell> cells = pair.Value;
+            if (cells.Count < 8) continue;
+
+            try
+            {
+                // 공통 필드
+                ItemDataDTO dto = new ItemDataDTO
+                {
+                    ItemType    = itemType.ToString(),
+                    Rarity      = cells[0].value,
+                    ID          = cells[1].value,
+                    Name        = cells[2].value,
+                    Description = cells[3].value,
+                    Weight      = float.Parse(cells[4].value),
+                    MaxStack    = int.Parse(cells[5].value),
+                    TileSizeX   = int.Parse(cells[6].value),
+                    TileSizeY   = int.Parse(cells[7].value),
+                    IconKey     = cells.Count > 8 && !string.IsNullOrEmpty(cells[8].value)
+                                  ? $"UI/Icon/{itemType}/{cells[8].value}" // 타입별 폴더에서 찾기 (예: UI/Icon/WeaponMelee/Icon_Bat)
+                                  : "UI/Icon/Icon_Temp",                   // 비어 있으면 루트의 기본 아이콘
+                    PrefabKey   = cells.Count > 9 && !string.IsNullOrEmpty(cells[9].value)
+                                  ? $"Prefab/Item/{itemType}/{cells[9].value}"
+                                  : "Prefab/Item/PF_TestItem",
+                };
+
+                // 타입별 추가 필드
+                switch (itemType)
+                {
+                    case EItemType.Container:
+                        dto.ContainerType = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? cells[10].value : "Bag";
+                        dto.GridWidth     = cells.Count > 11 ? int.Parse(cells[11].value) : 0;
+                        dto.GridHeight    = cells.Count > 12 ? int.Parse(cells[12].value) : 0;
+                        break;
+                    case EItemType.WeaponMelee:
+                        dto.WeaponType      = "Melee";
+                        dto.WeaponMeleeType = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? cells[10].value : "Bat";
+                        dto.Damage          = cells.Count > 11 && !string.IsNullOrEmpty(cells[11].value) ? float.Parse(cells[11].value) : 0f;
+                        dto.AttackSpeed     = cells.Count > 12 && !string.IsNullOrEmpty(cells[12].value) ? float.Parse(cells[12].value) : 1f;
+                        break;
+                    case EItemType.WeaponRanged:
+                        dto.WeaponType = "Ranged";
+                        break;
+                    case EItemType.Medical:
+                        dto.HealAmount = cells.Count > 10 && !string.IsNullOrEmpty(cells[10].value) ? float.Parse(cells[10].value) : 0f;
+                        dto.UseTime    = cells.Count > 11 && !string.IsNullOrEmpty(cells[11].value) ? float.Parse(cells[11].value) : 0f;
+                        break;
+                }
+
+                DataList.Items.Add(dto);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Tools_ItemDataFetcher] 파싱 실패 Row {pair.Key}: {e.Message}");
+            }
+        }
+
+        LoadedSheets++;
+        if (LoadedSheets == TotalSheets) SaveToJson();
+    }
+
+    private static void SaveToJson()
+    {
+        string dir = Path.GetDirectoryName(SavePath);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+        string json = JsonUtility.ToJson(DataList, true);
+        File.WriteAllText(SavePath, json);
+        AssetDatabase.Refresh();
+
+        Debug.Log($"[Tools_ItemDataFetcher] 저장 완료 — {DataList.Items.Count}개 아이템 → {SavePath}");
+    }
+}

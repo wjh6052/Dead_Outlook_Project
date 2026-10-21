@@ -19,16 +19,17 @@ public class PlayerAnimator : MonoBehaviour
     #endregion
 
     #region 내부 상태
-    private Animator     Anim;
-    private float        SmoothedSpeedType;
-    private float        SmoothedStanceType;
-    private float        SmoothedMoveX;
-    private float        SmoothedMoveZ;
-    private EStanceType  PrevStanceType;
-    public  bool         IsAim { get; private set; }
+    private Animator     Anim;                // 자식 모델의 Unity Animator
+    private float        SmoothedSpeedType;   // 보간 중인 SpeedType 값
+    private float        SmoothedStanceType;  // 보간 중인 StanceType 값
+    private float        SmoothedMoveX;       // 보간 중인 좌우 이동 입력
+    private float        SmoothedMoveZ;       // 보간 중인 앞뒤 이동 입력
+    private EStanceType  PrevStanceType;      // 이전 프레임 자세 — 웅크리기 · 일어서기 트리거 판정용
+    public  bool         IsAim { get; private set; } // 현재 조준 중 여부
     #endregion
 
     #region 파라미터 해시
+    // 애니메이터 파라미터 이름을 미리 숫자(해시)로 변환 — 매 프레임 문자열 비교를 피함
     private int HashSpeedType;
     private int HashStanceType;
     private int HashMoveX;
@@ -46,12 +47,12 @@ public class PlayerAnimator : MonoBehaviour
     private int  HashFocusType;
     private int  HashOnFocusStart;
     private int  HashOnGrabbed;
-    private bool PrevIsFocusing;
+    private bool PrevIsFocusing; // 이전 집중 상태 — 집중 시작 트리거 판정용
     #endregion
 
     private void Awake()
     {
-        Anim           = GetComponent<Animator>();
+        Anim           = GetComponentInChildren<Animator>(); // Animator는 자식 모델에 있음
 
         HashSpeedType  = Animator.StringToHash("SpeedType");
         HashStanceType = Animator.StringToHash("StanceType");

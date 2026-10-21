@@ -28,29 +28,42 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     #endregion
 
     #region 상태
+    [field: Tooltip("현재 이동 속도 (m/s)")]
     [field: SerializeField] public float CurrentSpeed { get; private set; } // 현재 이동 속도 (m/s)
+    [field: Tooltip("자세 상태 (Stand / Crouch)")]
     [field: SerializeField] public EStanceType StanceType   { get; private set; } // 자세 상태 (Stand / Crouch / Air)
+    [field: Tooltip("이동 속도 상태 (Idle / Walk / Run)")]
     [field: SerializeField] public ESpeedType  SpeedType    { get; private set; } // 이동 속도 상태 (Idle / Walk / Run)
+    [field: Tooltip("지면 접촉 여부")]
     [field: SerializeField] public bool        bIsGrounded  { get; private set; } // 지면 접촉 여부
+    [field: Tooltip("좀비에게 잡혀 있는지 여부")]
     [field: SerializeField] public bool        IsGrabbed    { get; private set; } // 좀비에게 잡혀 있는지 여부
 
     #endregion
 
 
     [Header("이동")]
+    [Tooltip("걷기 이동 속도 (m/s)")]
     [SerializeField] private float WalkSpeed  = 3f; // 걷기 이동 속도 (m/s)
+    [Tooltip("달리기 이동 속도 (m/s)")]
     [SerializeField] private float RunSpeed   = 5f; // 달리기 이동 속도 (m/s)
 
     [Header("웅크리기")]
+    [Tooltip("웅크리며 걷는 속도 (m/s)")]
     [SerializeField] private float CrouchSpeed    = 2f; // 웅크리며 걷는 속도 (m/s)
+    [Tooltip("웅크리며 뛰는 속도 (m/s)")]
     [SerializeField] private float CrouchRunSpeed = 3f; // 웅크리며 뛰는 속도 (m/s)
+    [Tooltip("서 있을 때 캡슐 높이 (m)")]
     [SerializeField] private float StandHeight  = 2f; // 기립 시 캡슐 높이 (m)
+    [Tooltip("웅크렸을 때 캡슐 높이 (m)")]
     [SerializeField] private float CrouchHeight = 1f; // 웅크리기 시 캡슐 높이 (m)
 
     [Header("점프")]
+    [Tooltip("점프 시 위로 가해지는 힘")]
     [SerializeField] private float JumpForce = 5f; // 점프 시 위로 가해지는 힘
 
     [Header("회전")]
+    [Tooltip("캐릭터 회전 속도 — 높을수록 즉각 회전")]
     [SerializeField] private float RotationSpeed = 15f; // 캐릭터 회전 속도 — 높을수록 즉각 회전
 
     private bool bPrevCrouch;    // 이전 프레임 웅크리기 버튼 상태 — 상승 엣지 감지용
@@ -71,12 +84,13 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         Player   = GetComponent<Character_Player>();
         KCC      = GetComponent<KinematicCharacterMotor>();
         Animator = GetComponent<PlayerAnimator>();
-        Anim     = GetComponent<Animator>();
+        Anim     = GetComponentInChildren<Animator>(); // Animator는 자식 모델에 있음
         KCC.CharacterController = this; // KCC가 이 스크립트를 컨트롤러로 사용하도록 등록
     }
 
     // Apply Root Motion 대신 Unity가 호출 — 루트 모션 델타를 KCC 속도로 변환해 캐싱
-    private void OnAnimatorMove()
+    // 모델의 PlayerAnimationEvents.OnAnimatorMove에서 호출
+    public void UpdateRootMotion()
     {
         RootMotionVelocity = Anim.deltaPosition / Time.deltaTime;
     }

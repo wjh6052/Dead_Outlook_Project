@@ -3,14 +3,24 @@ using UnityEngine;
 public class InventoryComponent : MonoBehaviour
 {
 
+    [Tooltip("주머니 인벤토리 데이터 (고정)")]
     public InventoryData  PocketData;  // 주머니 인벤토리 데이터 (고정)
+    [Tooltip("현재 장착된 조끼 아이템")]
     public Item_Container VestItem;    // 현재 장착된 조끼 아이템
+    [Tooltip("현재 장착된 가방 아이템")]
     public Item_Container BagItem;     // 현재 장착된 가방 아이템
+    [Tooltip("1번 슬롯에 장착된 무기 아이템")]
     public Item           Weapon_1_Item; // 현재 장착된 무기 1
+    [Tooltip("2번 슬롯에 장착된 무기 아이템")]
     public Item           Weapon_2_Item; // 현재 장착된 무기 2
 
-    public Weapon Weapon_1; // 현재 WeaponSocket_1에 장착된 무기 오브젝트
-    public Weapon Weapon_2; // 현재 WeaponSocket_2에 장착된 무기 오브젝트
+    [Tooltip("WeaponSocket_1에 생성된 무기 오브젝트")]
+    public EquipItem_Weapon Weapon_1; // 현재 WeaponSocket_1에 장착된 무기 오브젝트
+    [Tooltip("WeaponSocket_2에 생성된 무기 오브젝트")]
+    public EquipItem_Weapon Weapon_2; // 현재 WeaponSocket_2에 장착된 무기 오브젝트
+
+    [Tooltip("BagSocket에 생성된 가방 오브젝트")]
+    public EquipItem_Container_Bag BagObject; // 현재 BagSocket에 장착된 가방 오브젝트
 
     private IInventory InventoryOwner; // 같은 오브젝트의 IInventory 구현체
 
@@ -26,6 +36,7 @@ public class InventoryComponent : MonoBehaviour
         foreach (Transform child in InventoryOwner.MeshComp.HandSocket_R) Destroy(child.gameObject);
         foreach (Transform child in InventoryOwner.MeshComp.WeaponSocket_1) Destroy(child.gameObject);
         foreach (Transform child in InventoryOwner.MeshComp.WeaponSocket_2) Destroy(child.gameObject);
+        foreach (Transform child in InventoryOwner.MeshComp.BagSocket) Destroy(child.gameObject);
 
         yield return null;
     }
@@ -62,7 +73,7 @@ public class InventoryComponent : MonoBehaviour
         {
             BagItem.ContainerInventory.Items.Clear();
             BagItem.ContainerInventory.OnChanged?.Invoke();
-            BagItem = null;
+            SetBag(null); // 가방 해제 — 등의 가방 오브젝트도 제거
         }
 
         // 무기 해제
@@ -84,9 +95,10 @@ public class InventoryComponent : MonoBehaviour
 
             if (item != null)
             {
-                // 아이템 프리팹을 WeaponSocket_1에 소환 후 Weapon 컴포넌트 초기화
-                Weapon_1 = Instantiate(item.Prefab, InventoryOwner.MeshComp.WeaponSocket_1).GetComponent<Weapon>();
-                Weapon_1.Init(item as Item_Weapon, gameObject);
+                // 아이템 프리팹을 WeaponSocket_1에 소환 후 EquipItem_Weapon 컴포넌트 초기화
+                Weapon_1 = Instantiate(item.Prefab, InventoryOwner.MeshComp.WeaponSocket_1).GetComponent<EquipItem_Weapon>();
+                Weapon_1.InitEquip(item, gameObject);
+                Weapon_1.AttachToHolster(InventoryOwner.MeshComp.WeaponSocket_1); // 홀스터 포인트 기준으로 위치 보정
             }
         }
         else
@@ -97,13 +109,40 @@ public class InventoryComponent : MonoBehaviour
 
             if (item != null)
             {
-                // 아이템 프리팹을 WeaponSocket_2에 소환 후 Weapon 컴포넌트 초기화
-                Weapon_2 = Instantiate(item.Prefab, InventoryOwner.MeshComp.WeaponSocket_2).GetComponent<Weapon>();
-                Weapon_2.Init(item as Item_Weapon, gameObject);
+                // 아이템 프리팹을 WeaponSocket_2에 소환 후 EquipItem_Weapon 컴포넌트 초기화
+                Weapon_2 = Instantiate(item.Prefab, InventoryOwner.MeshComp.WeaponSocket_2).GetComponent<EquipItem_Weapon>();
+                Weapon_2.InitEquip(item, gameObject);
+                Weapon_2.AttachToHolster(InventoryOwner.MeshComp.WeaponSocket_2); // 홀스터 포인트 기준으로 위치 보정
             }
         }
 
         InventoryOwner.WeaponSlotUpdate();
+    }
+
+    // 가방 장착/해제 — item이 null이면 해제 / 장착하면 가방 오브젝트를 BagSocket에 표시
+    public void SetBag(Item_Container item)
+    {
+        BagItem = item;
+        if (BagObject != null)
+            Destroy(BagObject.gameObject); // 기존 가방 오브젝트 제거
+        BagObject = null;
+
+        if (item == null) return;
+
+        // 아이템 프리팹을 BagSocket에 소환
+        GameObject bagObject = Instantiate(item.Prefab, InventoryOwner.MeshComp.BagSocket);
+        BagObject = bagObject.GetComponent<EquipItem_Container_Bag>();
+        if (BagObject == null)
+        {
+            // 가방 컴포넌트가 없는 프리팹 — 데이터 장착은 유지하고 등에 보이는 오브젝트만 생략
+            Debug.LogWarning($"{bagObject.name}에 EquipItem_Container_Bag이 없습니다 ({item.ID})");
+            Destroy(bagObject);
+            return;
+        }
+
+        // 등에 멘 가방은 바닥 아이템이 아니므로 줍기 · 물리 · 충돌 비활성화 (EquipItem)
+        BagObject.InitEquip(item, gameObject);
+        BagObject.AttachToHolster(InventoryOwner.MeshComp.BagSocket); // 홀스터 포인트 기준으로 위치 보정
     }
 
 

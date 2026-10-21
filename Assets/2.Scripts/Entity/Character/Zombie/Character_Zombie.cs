@@ -19,6 +19,7 @@ public class Character_Zombie : MonoBehaviour, IDamageable
     public MeshComponent       MeshComp   { get; private set; }
     public ZombieAnimator      ZombieAnim { get; private set; }
     public AIZombieController  AICtrl     { get; private set; }
+    private Collider           Col;        // 몸 콜라이더 — 사망 시 비활성화
     #endregion
 
     private void Awake()
@@ -27,6 +28,7 @@ public class Character_Zombie : MonoBehaviour, IDamageable
         MeshComp   = GetComponent<MeshComponent>();
         ZombieAnim = GetComponent<ZombieAnimator>();
         AICtrl     = GetComponent<AIZombieController>();
+        Col        = GetComponent<Collider>();
     }
 
     // IDamageable — 데미지를 받아 HP 감소, 0이 되면 사망 처리
@@ -55,6 +57,7 @@ public class Character_Zombie : MonoBehaviour, IDamageable
         Debug.Log($"좀비 사망");
         ZombieAnim.PlayDeath();
         AICtrl.OnDeath();
+        Col.enabled = false; // 시체가 길을 막지 않도록 콜라이더 비활성화
     }
 
     // 대상 위치를 향해 즉시 회전 — 높이 차이는 무시하고 수평으로만 회전
@@ -64,6 +67,14 @@ public class Character_Zombie : MonoBehaviour, IDamageable
         if (dir.sqrMagnitude < 0.0001f) return; // 같은 위치면 방향을 정할 수 없음
 
         transform.rotation = Quaternion.LookRotation(dir);
+    }
+
+    // 루트 모션 적용 — Apply Root Motion과 같은 계산으로 좀비(부모)를 이동 · 회전
+    // 모델의 ZombieAnimationEvents.OnAnimatorMove에서 호출
+    public void ApplyRootMotion(Vector3 deltaPosition, Quaternion deltaRotation)
+    {
+        transform.position += deltaPosition;
+        transform.rotation *= deltaRotation;
     }
 
 

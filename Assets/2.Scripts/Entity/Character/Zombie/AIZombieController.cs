@@ -50,6 +50,7 @@ public class AIZombieController : MonoBehaviour
     private bool             IsHit;        // 피격 이벤트 발생 여부
     private bool             IsAttacking;  // 공격 애니메이션 진행 중 여부
 
+
     // 컴포넌트
     private Character_Zombie Zombie;
     private NavMeshAgent     Agent;

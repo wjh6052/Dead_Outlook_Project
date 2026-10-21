@@ -56,9 +56,12 @@
 
 
 ### 모델링
-- [ ] 아이템 3D 모델링 제작
-- [ ] 에디터 베이킹 툴 구현 (ItemIconBaker.cs — 모델 → 아이콘 PNG 자동 생성)
-- [ ] 장비 장착 시 장비 오브젝트를 캐릭터에 부착 (조끼, 가방 등)
+- [ ] 아이템 3D 모델링 제작 (아이템 모델은 Read/Write 켜기 — 바닥에서 Outline이 메쉬를 읽음)
+
+### 장착 아이템
+- [ ] 조끼 · 벨트 장착 시 오브젝트 부착 — EquipItem_Container 상속 클래스, VestSocket · BeltSocket, InventoryComponent 장착 함수
+  - 벨트는 EContainerType에 Belt 추가 + 인벤토리 UI 벨트 칸 필요 (지금 테스트 "밸트"는 Vest로 들어가 있음)
+- [ ] 가방 · 조끼 · 벨트 장착 함수 일반화 검토 — SetBag 등을 EContainerType으로 구분하는 SetContainer 하나로
 
 
 ## 고민중
@@ -89,6 +92,23 @@
 - [v] 잡힌 상태에서 F키 상호작용이 되는 버그 (Mgr_PlayerController/OnInteractable 상태 검사)
 - [v] 웅크린 채 잡히면 일어서는 애니메이션이 잡힘 애니메이션을 끊는 버그 (잡힌 동안 자세 트리거 차단)
 - [v] 방망이 장착 시 프리팹 없음 오류 (PF_Bat · Icon_Bat · Bat 모델 복원)
+- [v] 죽은 좀비 콜라이더가 남아 플레이어가 지나가지 못하는 버그 (Character_Zombie/OnDeath — 콜라이더 비활성화)
+- [v] 등에 멘 무기가 너무 위로 올라가는 문제 (손 기준 원점 대신 HolsterPoint 기준으로 등 소켓에 부착)
+- [v] 아이템 장착 시 Outline이 메쉬를 못 읽는 오류 (아이템 모델 FBX Read/Write 켜기)
+- [v] 아이콘 · 프리팹 경로가 틀리면 아이콘이 비거나 장착 시 오류 (Mgr_Item — 기본 아이콘 Icon_Temp · 테스트 프리팹으로 대체 + 경고 로그)
+
+### 장착 아이템 (EquipItem)
+- [v] EquipItem 공통 부모 — InitEquip(Item, owner) (줍기 · 물리 · 콜라이더 · 레이어), AttachToSocket · AttachToHolster, HolsterPoint, FindChild
+- [v] 무기 이름 변경 — Weapon → EquipItem_Weapon, Weapon_Melee → EquipItem_Weapon_Melee (WeaponData는 ItemData 캐스팅 속성)
+- [v] EquipItem_Container (ContainerData 캐스팅 속성) → EquipItem_Container_Bag
+- [v] GripPoint_L · HolsterPoint를 자식 이름으로 자동 연결 (Awake — Instantiate 직후 필요)
+- [v] 가방 장착 시 등에 오브젝트 표시 (MeshComponent.BagSocket, InventoryComponent/SetBag — 사망 시 함께 제거)
+
+### 아이템 데이터 · 에디터 도구
+- [v] 아이콘 · 프리팹을 아이템 타입별 폴더에서 찾기 (UI/Icon/{타입}/, Prefab/Item/{타입}/)
+- [v] Tools 메뉴 스크립트 Tools_ 접두사 규칙 (Tools_ItemDataFetcher · Tools_ItemIconBaker, Editor 폴더)
+- [v] 아이콘 베이킹 툴 복원 (Tools_ItemIconBaker — 모델 → 아이콘 PNG) + Z축(롤) 회전 추가
+- [v] 인스펙터 표시 변수 Tooltip · 미표시 변수 주석 규칙 — 플레이어 스크립트 적용 (Character_Player · PlayerMovement · PlayerAnimator · InventoryComponent · MeshComponent)
 
 ### 좀비 잡기 공격 (잡기 → 물기 → 밀치기)
 - [v] 좀비 Zombie_Grab · Zombie_Bite · Zombie_Pushed / 플레이어 Player_Grabbed · Player_Bitten · Player_Push 애니메이션 추가
@@ -105,6 +125,13 @@
 - [v] 플레이어를 잊으면 마지막으로 본 위치로 경계 이동 (AlertPoint · LastSeenPosition)
 - [v] 좀비 뛰기 제거 — 추격도 걷기 속도 (WalkSpeed를 Character_Zombie 스텟으로 이동)
 - [v] AIZombieController.Target 읽기 전용 공개
+
+### 캐릭터 구조 분리 (빈 부모 + 모델 자식)
+- [v] 로직 컴포넌트는 빈 부모에, Animator는 자식 모델에 — 모델만 교체하면서 작업 가능
+- [v] PlayerAnimationEvents — 애니메이션 이벤트 · OnAnimatorMove를 부모의 Character_Player · PlayerMovement로 전달
+- [v] ZombieAnimationEvents — 애니메이션 이벤트를 Character_Zombie로 전달, 루트 모션은 Character_Zombie/ApplyRootMotion으로 부모 이동
+- [v] PlayerAnimator · PlayerMovement · ZombieAnimator · MeshComponent — Animator를 GetComponentInChildren으로 찾도록 변경
+- [v] Player_Scene 플레이어 · Field_Scene 좀비 구조 변경
 
 ### 씬 분할
 - [v] 씬 분할 (Player, UI, Mgr)

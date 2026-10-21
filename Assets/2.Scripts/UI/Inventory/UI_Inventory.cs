@@ -38,7 +38,7 @@ public class UI_Inventory : MonoBehaviour
         });
         Bag_EquipSlot.Init(item =>
         {
-            Player_Inventory.BagItem = item as Item_Container;
+            Player_Inventory.SetBag(item as Item_Container); // 가방 데이터 + 등의 가방 오브젝트
             Bag_ItemGrid.gameObject.SetActive(Player_Inventory.BagItem != null);
             Bag_ItemGrid.Init(Player_Inventory.BagItem?.ContainerInventory);
         });
