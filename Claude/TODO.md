@@ -5,17 +5,30 @@
 
 ## 다음 작업
 
+### 아이템 / 인벤토리
+- [ ] 플레이어 생존 스탯 — Character_Player에 FStat으로 추가
+  - 구현 순서: 스태미나 → 과적(무게) → 배고픔 · 목마름 → 배고픔 · 목마름 효과
+- [ ] InventoryData에 총 무게 계산 함수 추가
+- [ ] 회복 아이템 클래스 설계 (Item_Food)
+- [ ] 음식 아이템 추가 (Item_Food 구현 및 생존 스탯 연동, 사용 버튼)
+
+### 월드
+- [ ] 지도 (씬 전환)
+- [ ] 맵 이동 시 로딩 동기화 — Mgr_Game/ChangeScene에서 씬 로드 완료 시점 받기 (SceneManager.sceneLoaded 이벤트 또는 LoadSceneAsync의 completed · progress)
+- [ ] 저장 시스템
+
+
 ### 좀비 잡기 공격 — 남은 작업
-- [ ] 여러 좀비 합류 — 이미 물고 있으면 다른 좀비도 합류해서 물고, 밀치는 타이밍에 같이 밀려남
-- [ ] 잡고 있는 좀비가 데미지를 받으면 바로 풀림
+- [ ] 좀비에게 공격받은 후 무적처리
+
+
 - 아직 정할 것
   - 주 좀비(처음 잡은 좀비)가 데미지로 풀리면 잡기 전체 종료할지, 합류 좀비는 계속 물지
 - 정해진 규칙
   - 잡기 조건: 공격 사거리 안 + 피격 중이 아님 (정면 조건은 제거 — 공격 시작 시 서로 마주 보도록 즉시 회전)
   - 잡혀 있는 동안 조작 · 카메라 잠금 (EGameState.Stop 재사용)
 
-### 적 (좀비)
-- [ ] 좀비 애니메이션 클립 정리 (Death · Hit) — 공격은 잡기 클립으로 대체됨
+
 
 
 ---
@@ -29,46 +42,41 @@
   - 원인: 플레이어 KCC가 좀비 콜라이더와 겹친 것을 감지하고 밀어냄
   - 방향: Character_Player에 잡은 좀비(GrabbedZombie) 저장 → PlayerMovement/IsColliderValidForCollisions에서 그 좀비만 false 반환 → Player_Push 끝 이벤트 OnGrabEnd에서 해제
 
+
+
 ### 적 (좀비)
-- [ ] 플레이어 행동별 MakeNoise 연결 (걷기 · 달리기 · 공격 · 착지)
 - [ ] 사망 후처리 — Destroy · 아이템 드롭
 
 ### 전투
 - [ ] 데미지 임팩트 (피격 이펙트, 사운드, 히트스톱 등)
-- [ ] 무기 베이스 클래스 설계 (총기) [모딩시스템] [탄약 관리]
-- [ ] 총기 발사 / 재장전 세부 구현 + 애니메이션
+
 
 ### 플레이어
-- [ ] 플레이어 스테미너 시스템
-- [ ] 사망 연출 (눈 감기 → 페이드아웃)
-- [ ] 감염 시스템 (회복 아이템에 감염 치료 / 감염 늦추기 변수 추가)
 
-### 아이템 / 인벤토리
-- [ ] InventoryData에 총 무게 계산 함수 추가
-- [ ] 회복 아이템 클래스 설계 (Item_Food)
-- [ ] 음식 아이템 추가 (Item_Food 구현 및 생존 스탯 연동, 사용 버튼)
 
-### 월드
-- [ ] 지도 (씬 전환)
-- [ ] 맵 이동 시 로딩 동기화 — Mgr_Game/ChangeScene에서 씬 로드 완료 시점 받기 (SceneManager.sceneLoaded 이벤트 또는 LoadSceneAsync의 completed · progress)
-- [ ] 저장 시스템
-- [ ] 은신처 강화 시스템
+
+
+
+
+
 
 
 ### 모델링
 - [ ] 아이템 3D 모델링 제작 (아이템 모델은 Read/Write 켜기 — 바닥에서 Outline이 메쉬를 읽음)
 
-### 장착 아이템
-- [ ] PF_Vest_VestWork에 Interactable_Item 추가 — 없으면 바닥에 버린 조끼를 F키로 줍지 못함
-- [ ] 조끼 단계 추가 검토 — 작업 조끼(하) → 낚시 조끼(중) → 전술 조끼(상)
-- [ ] 가방 · 조끼 장착 함수 일반화 검토 — SetBag · SetVest를 EContainerType으로 구분하는 SetContainer 하나로 (장착 종류가 늘어날 때)
 
-### 디테일 작업 (데이터)
-- [ ] 구글시트 값 앞뒤 공백 자동 제거 — Tools_ItemDataFetcher에서 칸 값 Trim (붙여넣기로 공백이 들어가 아이콘을 못 찾던 문제 예방)
+
 
 
 ## 고민중
-- [ ] 플레이어 생존 스탯 (배고픔, 목마름, 피로, 체온, 스트레스, 질병)
+- [ ] 은신처 강화 시스템
+
+- [ ] 감염 시스템 (회복 아이템에 감염 치료 / 감염 늦추기 변수 추가)
+
+- [ ] 무기 베이스 클래스 설계 (총기) [모딩시스템] [탄약 관리]
+- [ ] 총기 발사 / 재장전 세부 구현 + 애니메이션
+
+- [ ] 사망 연출 (눈 감기 → 페이드아웃)
 
 - [ ] 날카로운 날붙이가 있는 무기로 공격 및 타격시 특수 애니메이션이 나오도록
 
@@ -131,6 +139,24 @@
 - [v] 물기 데미지 (Character_Zombie/OnBite 애니메이션 이벤트 → AttackDamage)
 - [v] 잡기 종료 시 잠금 해제 (Player_Push 이벤트 → Character_Player/OnGrabEnd)
 - [v] RootMotion 태그 상태에서만 루트 모션 이동 (PlayerMovement/IsRootMotionState)
+- [v] 여러 좀비 합류 — 이미 잡혀 있으면 플레이어 애니메이션은 다시 시작하지 않고 좀비만 잡기 · 물기 재생 (Character_Player/JoinGrab)
+- [v] 밀치는 프레임에 잡고 있는 좀비 모두 밀려남 (Player_Push 이벤트 OnPush → Character_Player/OnPush → GrabbingZombies 전체 PlayPushed)
+  - 좀비 애니메이터 Zombie_Bite → Zombie_Pushed 전이를 Pushed 트리거로 변경 (Has Exit Time 끔)
+  - 밀치기가 끝날 때(OnGrabEnd)도 남은 좀비를 밀어냄 — 늦게 합류한 좀비가 멈춰 있지 않도록
+- [v] 좀비 2마리 이상일 때 번갈아 잡아 아무것도 못 하고 죽는 버그 (위 합류 방식으로 해결)
+
+### 스탯
+- [v] FStat 구조체 (Max · Current · IsEmpty · Ratio · Add · Fill) — 구조체라 속성이 아닌 필드로 선언
+- [v] HP를 FStat으로 변경 (Character_Player · Character_Zombie · Character_Dummy), IDamageable에서 HP · MaxHP 제거
+
+### 맵 관리 · 사망
+- [v] Mgr_Map — 맵 씬 로드/언로드 · CurrentMap · 씬 이름 (EScene + "_Scene")
+- [v] MapController — 맵별 스폰 위치, 로드 완료 시 Mgr_Map/RegisterMap → Mgr_Game/OnMapReady → OnMapEnter에서 스폰
+- [v] MapController_Hideout · MapController_Field — OnMapEnter · OnMapExit 오버라이드
+- [v] 사망 애니메이션 + 5초 뒤 아이템 손실 · 은신처 귀환 (Mgr_Game/PlayerDeathCoroutine)
+- [v] 부활 — 체력 회복 · 애니메이터 초기화 (Character_Player/Revive)
+- [v] Test_ → Mgr_Test 이름 변경, Test_Script 데미지 구역 (테스트용)
+- [v] 은신처에서 인벤토리 열 때 보관함 자동 표시 주석 처리
 
 ### 좀비 AI 개선
 - [v] 피격 경직 — 애니메이션 이벤트 대신 Hit_Timer로 해제

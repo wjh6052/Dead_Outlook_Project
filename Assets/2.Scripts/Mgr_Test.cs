@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Test_ : MonoBehaviour
+public class Mgr_Test : MonoBehaviour
 {
     public Character_Zombie Test_Character_Zombie;
 

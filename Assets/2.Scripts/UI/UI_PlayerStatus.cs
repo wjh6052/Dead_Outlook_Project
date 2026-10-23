@@ -8,6 +8,6 @@ public class UI_PlayerStatus : MonoBehaviour
     private void Update()
     {
         if (Character_Player.Inst == null) return;
-        HPBar_Image.fillAmount = Character_Player.Inst.HP / Character_Player.Inst.MaxHP;
+        HPBar_Image.fillAmount = Character_Player.Inst.HP.Ratio;
     }
 }

@@ -20,6 +20,7 @@ public class ZombieAnimator : MonoBehaviour
     private int HashAttack;
     private int HashHit;
     private int HashDeath;
+    private int HashPushed;
     #endregion
 
 
@@ -31,6 +32,7 @@ public class ZombieAnimator : MonoBehaviour
         HashAttack = Animator.StringToHash("Attack");
         HashHit    = Animator.StringToHash("Hit");
         HashDeath  = Animator.StringToHash("Death");
+        HashPushed = Animator.StringToHash("Pushed");
     }
 
 
@@ -42,11 +44,18 @@ public class ZombieAnimator : MonoBehaviour
     }
 
     // 공격 트리거 — AIZombieController에서 공격 시 호출
-    public void PlayAttack() => Anim.SetTrigger(HashAttack);
+    public void PlayAttack()
+    {
+        Anim.ResetTrigger(HashPushed); // 이전 공격 때 쓰이지 않고 남은 밀려남 트리거 제거 (물자마자 밀려나는 것 방지)
+        Anim.SetTrigger(HashAttack);
+    }
 
     // 피격 트리거 — Character_Zombie.TakeDamage에서 호출
     public void PlayHit() => Anim.SetTrigger(HashHit);
 
     // 사망 트리거 — Character_Zombie.OnDeath에서 호출
     public void PlayDeath() => Anim.SetTrigger(HashDeath);
+
+    // 밀려남 트리거 — Character_Player.OnPush에서 호출
+    public void PlayPushed() => Anim.SetTrigger(HashPushed);
 }

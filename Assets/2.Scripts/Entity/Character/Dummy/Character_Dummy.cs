@@ -3,8 +3,8 @@ using UnityEngine;
 public class Character_Dummy : MonoBehaviour, IDamageable
 {
     [Header("스텟")]
-    [field: SerializeField] public float MaxHP { get; private set; } = 100f;
-    [field: SerializeField] public float HP    { get; private set; }
+    [Tooltip("체력 (Max = 최대 체력, Current = 현재 체력)")]
+    public FStat HP = new FStat { Max = 100f };
 
     public void TakeDamage(float damage, GameObject attacker, GameObject attackerOwner)
     {

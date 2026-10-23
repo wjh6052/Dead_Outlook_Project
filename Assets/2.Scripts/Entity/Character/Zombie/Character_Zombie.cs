@@ -6,8 +6,8 @@ public class Character_Zombie : MonoBehaviour, IDamageable
 {
     #region 스텟
     [Header("스텟")]
-    [field: SerializeField] public float MaxHP        { get; private set; } = 100f;
-    [field: SerializeField] public float HP           { get; private set; }
+    [Tooltip("체력 (Max = 최대 체력, Current = 현재 체력)")]
+    public FStat HP = new FStat { Max = 100f };
     [field: SerializeField] public float AttackDamage { get; private set; } = 10f;
 
     [Header("이동")]
@@ -24,7 +24,7 @@ public class Character_Zombie : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        HP         = MaxHP;
+        HP.Fill();
         MeshComp   = GetComponent<MeshComponent>();
         ZombieAnim = GetComponent<ZombieAnimator>();
         AICtrl     = GetComponent<AIZombieController>();
@@ -34,11 +34,11 @@ public class Character_Zombie : MonoBehaviour, IDamageable
     // IDamageable — 데미지를 받아 HP 감소, 0이 되면 사망 처리
     public void TakeDamage(float damage, GameObject attacker, GameObject attackerOwner)
     {
-        if (HP <= 0f) return; // 이미 사망 — 데미지 · 피격 · 사망 처리 모두 무시
+        if (HP.IsEmpty) return; // 이미 사망 — 데미지 · 피격 · 사망 처리 모두 무시
 
-        HP = Mathf.Max(HP - damage, 0f);
-        Debug.Log($"[{name}] {attacker.name}에게 {damage} 데미지 — 남은 HP: {HP}/{MaxHP}");
-        if (HP <= 0f) OnDeath();
+        HP.Add(-damage);
+        Debug.Log($"[{name}] {attacker.name}에게 {damage} 데미지 — 남은 HP: {HP.Current}/{HP.Max}");
+        if (HP.IsEmpty) OnDeath();
         else          OnHit(attacker);
     }
 

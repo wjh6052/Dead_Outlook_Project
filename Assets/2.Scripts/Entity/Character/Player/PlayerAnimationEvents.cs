@@ -23,5 +23,6 @@ public class PlayerAnimationEvents : MonoBehaviour
     public void TakeWeapon(string attach) => Player.TakeWeapon(attach);
     public void OnHolsterEnd()            => Player.OnHolsterEnd();
     public void OnGrabEnd()               => Player.OnGrabEnd();
+    public void OnPush()                  => Player.OnPush();
     #endregion
 }

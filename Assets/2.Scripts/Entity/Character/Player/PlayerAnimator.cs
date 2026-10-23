@@ -47,6 +47,7 @@ public class PlayerAnimator : MonoBehaviour
     private int  HashFocusType;
     private int  HashOnFocusStart;
     private int  HashOnGrabbed;
+    private int  HashOnDeath;
     private bool PrevIsFocusing; // 이전 집중 상태 — 집중 시작 트리거 판정용
     #endregion
 
@@ -71,6 +72,7 @@ public class PlayerAnimator : MonoBehaviour
         HashFocusType       = Animator.StringToHash("FocusType");
         HashOnFocusStart    = Animator.StringToHash("OnFocusStart");
         HashOnGrabbed       = Animator.StringToHash("OnGrabbed");
+        HashOnDeath         = Animator.StringToHash("OnDeath");
     }
 
     // PlayerMovement의 AfterCharacterUpdate에서 호출 — 애니메이터 파라미터 갱신
@@ -137,6 +139,9 @@ public class PlayerAnimator : MonoBehaviour
 
     // 잡힘 → 물림 → 밀치기 재생 — 이후 단계는 애니메이터에서 Exit Time으로 연결
     public void PlayGrabbed() => Anim.SetTrigger(HashOnGrabbed);
+
+    // 사망 애니메이션 재생 — Full Body 레이어의 Player_Death (Any State → OnDeath 트리거)
+    public void PlayDeath() => Anim.SetTrigger(HashOnDeath);
 
     // 지정한 레이어를 Empty 상태로 부드럽게 전환 — 애니메이션 종료 시 사용
     public void PlayEmpty(EAnimatorLayer layer) => Anim.CrossFade("Empty", 0.2f, (int)layer);

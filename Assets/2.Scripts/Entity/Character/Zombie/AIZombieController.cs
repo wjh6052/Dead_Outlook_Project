@@ -93,7 +93,7 @@ public class AIZombieController : MonoBehaviour
     private void UpdateState()
     {
         // 체력이 0 이하면 사망 상태로 전환
-        if (Zombie.HP <= 0)
+        if (Zombie.HP.IsEmpty)
             ChangeState(EZombieState.Death);
         // 피격 이벤트 발생 시 Hit 상태로 전환
         else if (IsHit)
@@ -337,14 +337,17 @@ public class AIZombieController : MonoBehaviour
 
             // 공격 조건 — 하나라도 맞지 않으면 공격하지 않음 (쿨다운은 찬 상태로 유지)
             if (Target == null)    return; // 공격 대상 없음
-            if (Target.HP <= 0f)   return; // 플레이어 사망
+            if (Target.HP.IsEmpty) return; // 플레이어 사망
             if (Vector3.Distance(transform.position, Target.transform.position) > AttackRange) return; // 사거리 밖
 
             Zombie.LookAt(Target.transform.position); // 플레이어 방향으로 즉시 회전
-            Target.OnGrabbed(Zombie); // 플레이어에게 잡힘 신호 — 좀비와 같은 프레임에 애니메이션 시작
+            if (Target.Movement.IsGrabbed) // 이미 다른 좀비에게 잡혀 있으면 합류 — 플레이어 애니메이션은 다시 시작하지 않음
+                Target.JoinGrab(Zombie);   // 플레이어가 밀칠 때 같이 밀려나도록 등록
+            else
+                Target.OnGrabbed(Zombie);  // 플레이어에게 잡힘 신호 — 좀비와 같은 프레임에 애니메이션 시작
 
 
-            Zombie.ZombieAnim.PlayAttack(); // 잡기 → 물기 → 밀치기 애니메이션 재생
+            Zombie.ZombieAnim.PlayAttack(); // 잡기 → 물기 → (밀침 신호 대기) → 밀려남 애니메이션 재생
 
             IsAttacking = true;             // 공격 중 — EndAttack 이벤트 또는 피격 시 해제
             Attack_Timer.Reset();           // 쿨다운 초기화 — 공격이 끝난 뒤부터 다시 누적

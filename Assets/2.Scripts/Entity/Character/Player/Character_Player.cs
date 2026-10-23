@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum EFocusType
@@ -10,11 +11,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 {
     #region 스텟 변수 ---------------------------------------
 
-    [field: Header("스텟")]
-    [field: Tooltip("최대 체력")]
-    [field: SerializeField] public float MaxHP      { get; private set; } = 100f;
-    [field: Tooltip("현재 체력")]
-    [field: SerializeField] public float HP         { get; private set; }
+    [Header("스텟")]
+    [Tooltip("체력 (Max = 최대 체력, Current = 현재 체력)")]
+    public FStat HP = new FStat { Max = 100f };
     [Tooltip("아이템 사용 집중 중 여부")]
     public bool IsFocusing; // 아이템 사용 집중 중
     public EFocusType FocusType { get; private set; } // 아이템 사용 집중 중 — 집중 중인 행동 종류 (치료 등)
@@ -31,7 +30,12 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     public  float CameraHeightSpeed  = 10f;
     private float CameraStandHeight;                    // 서 있을 때 카메라 높이 — 시작 시 CameraTarget 높이로 저장
     public Transform CameraTarget { get; private set; } // 카메라가 따라가는 지점 (자식 오브젝트 CameraTarget)
-    #endregion 
+    #endregion
+
+
+    #region 잡힘 변수 ---------------------------------------
+    private List<Character_Zombie> GrabbingZombies = new List<Character_Zombie>(); // 잡고 있는 좀비 (처음 잡은 좀비 + 합류한 좀비) — 밀칠 때 모두 밀려남
+    #endregion
 
 
     #region 컴포넌트 ---------------------------------------
@@ -52,7 +56,7 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         InventoryComp = GetComponent<InventoryComponent>();
         MeshComp      = GetComponent<MeshComponent>();
         CameraTarget  = transform.Find("CameraTarget");
-        HP            = MaxHP;
+        HP.Fill();
         CameraStandHeight = CameraTarget.localPosition.y;
     }
 
@@ -61,84 +65,45 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
     public void TakeDamage(float damage, GameObject attacker, GameObject attackerOwner)
     {
-        HP = Mathf.Max(HP - damage, 0f);
-        Debug.Log($"[{name}] {attacker.name}에게 {damage} 데미지 — 남은 HP: {HP}/{MaxHP}");
-        if (HP <= 0f) OnDeath();
+        if (HP.IsEmpty) return; // 이미 사망 — 쓰러져 있는 동안 데미지 · 사망 처리 반복 방지
+
+        HP.Add(-damage);
+        Debug.Log($"[{name}] {attacker.name}에게 {damage} 데미지 — 남은 HP: {HP.Current}/{HP.Max}");
+        if (HP.IsEmpty) OnDeath();
     }
 
-    // 아이템 사용 — 타입별로 처리, 사용 성공 시 true 반환
-    public bool UseItem(Item item)
-    {
-        switch (item.ItemType)
-        {
-            case EItemType.Food:
-                return true;
-            case EItemType.Medical:
-                if(MaxHP <= HP) return false;
-                Item_Medical medical = item as Item_Medical;
-                StartCoroutine(HealCoroutine(medical.HealAmount, medical.UseTime, item));
-                return true;
-        }
-
-        return false;
-    }
 
     public void Heal(float amount)
     {
-        HP = Mathf.Min(HP + amount, MaxHP);
+        HP.Add(amount);
     }
-
-    // UseTime초 동안 집중 후 아이템 소모 + HealAmount만큼 회복
-    private IEnumerator HealCoroutine(float healAmount, float useTime, Item item)
-    {
-        yield return StartCoroutine(FocusCoroutine(EFocusType.Medical, useTime, () =>
-        {
-            item.DecreaseAmount(1);
-            Heal(healAmount);
-        }));
-    }
-
-    // useTime초 동안 집중 타이머 UI를 표시하고, 완료 시 onComplete 호출
-    // 도중에 IsFocusing이 false가 되면 취소
-    private IEnumerator FocusCoroutine(EFocusType focusType, float useTime, System.Action onComplete = null)
-    {
-        if (IsFocusing) yield break; // 이미 집중 중이면 취소
-
-        IsFocusing = true;
-        FocusType  = focusType;
-        Animator.UpdateFocus();
-
-        // 집중 타이머 UI 활성화
-        UI_FocusTimer focusTimer = Mgr_UI.Inst.FocusTimer;
-        focusTimer.gameObject.SetActive(true);
-        focusTimer.Init(useTime);
-
-        float elapsed = 0f;
-        while (elapsed < useTime)
-        {
-            if (!IsFocusing)                           // 외부에서 집중 취소 → UI 비활성 후 중단
-            {
-                focusTimer.gameObject.SetActive(false);
-                Animator.UpdateFocus();
-                yield break;
-            }
-            elapsed += Time.deltaTime;
-            focusTimer.UpdateTimer(useTime - elapsed, useTime);
-            yield return null;
-        }
-        focusTimer.gameObject.SetActive(false);
-        IsFocusing = false;
-        Animator.UpdateFocus();
-        onComplete?.Invoke();
-    }
-
 
 
     private void OnDeath()
     {
         Debug.Log($"플레이어 죽음 / 현재 체력:{HP}");
-        InventoryComp.ClearInventory();          // 보유 아이템 전체 손실
-        Mgr_Game.Inst.ChangeScene(EScene.Hideout); // 은신처로 귀환
+
+        // 하던 행동 취소
+        if (IsAttack) OnAttackEnd(); // 공격 — 콤보 초기화 + Upper Body 레이어 비우기
+        IsFocusing = false;          // 아이템 사용 — FocusCoroutine이 감지해 취소
+
+        Animator.PlayDeath();        // 사망 애니메이션
+        Mgr_Game.Inst.PlayerDeath(); // 게임에 사망 신호
+    }
+
+    // 부활 — 사망 상태를 되돌림 (Mgr_Game.PlayerDeathCoroutine에서 은신처 귀환 후 호출)
+    // 플레이어 프리팹화 후 사망 시 재생성 방식으로 바꾸면 삭제 예정
+    public void Revive()
+    {
+        HP.Fill(); // 체력 최대로
+
+        // 애니메이션 전체 초기화 — 모든 레이어 상태 · 파라미터를 기본값으로 (사망 자세에서 기본 상태로)
+        UnityEngine.Animator anim = GetComponentInChildren<UnityEngine.Animator>(); // Animator는 자식 모델에 있음
+        anim.Rebind();
+        anim.Update(0f); // 기본 자세를 즉시 반영
+
+        Movement.OnGrabEnd(); // 잡힌 채 죽었을 경우 잡힘 상태 해제
+        GrabbingZombies.Clear(); // 잡힌 채 죽었을 경우 잡고 있는 좀비 목록 비우기 (필드 씬이 내려가 좀비가 사라지므로)
     }
 
     #endregion
@@ -159,13 +124,32 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
 
         Movement.OnGrabbed(zombie.transform.position); // 잡힘 상태 · 자세 초기화 · 좀비 방향 회전 — 애니메이션보다 먼저
         Animator.PlayGrabbed();
+
+        GrabbingZombies.Add(zombie); // 밀칠 때 밀려나도록 등록
     }
 
     // 잡힘 종료 — Player_Push 애니메이션 마지막 프레임 이벤트로 호출
     public void OnGrabEnd()
     {
+        OnPush();                                    // 밀치는 프레임 이후 늦게 합류한 좀비도 밀어냄
         Movement.OnGrabEnd();                        // 잡힘 상태 해제
         Mgr_Game.Inst.SetGameState(EGameState.Play); // 조작 · 카메라 잠금 해제
+    }
+
+    // 잡혀 있는 동안 다른 좀비가 합류 — AIZombieController.UpdateAttack에서 호출
+    public void JoinGrab(Character_Zombie zombie)
+    {
+        GrabbingZombies.Add(zombie);
+    }
+
+    // 밀치기 — Player_Push 애니메이션의 밀치는 프레임 이벤트로 호출
+    // 잡고 있는 좀비를 모두 밀려나게 함 (처음 잡은 좀비 + 합류한 좀비)
+    public void OnPush()
+    {
+        foreach (Character_Zombie zombie in GrabbingZombies)
+            zombie.ZombieAnim.PlayPushed();
+
+        GrabbingZombies.Clear();
     }
 
     #endregion
@@ -254,6 +238,75 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
     #endregion IInventory ---------------------------------------
 
 
+    #region 아이템 사용 ---------------------------------------
+
+    // 아이템 사용 — 타입별로 처리, 사용 성공 시 true 반환
+    public bool UseItem(Item item)
+    {
+        switch (item.ItemType)
+        {
+            case EItemType.Food:
+                return true;
+            case EItemType.Medical:
+                if (HP.Current >= HP.Max) return false;
+                Item_Medical medical = item as Item_Medical;
+                StartCoroutine(HealCoroutine(medical.HealAmount, medical.UseTime, item));
+                return true;
+        }
+
+        return false;
+    }
+
+    // UseTime초 동안 집중 후 아이템 소모 + HealAmount만큼 회복
+    private IEnumerator HealCoroutine(float healAmount, float useTime, Item item)
+    {
+        yield return StartCoroutine(FocusCoroutine(EFocusType.Medical, useTime, () =>
+        {
+            item.DecreaseAmount(1);
+            Heal(healAmount);
+        }));
+    }
+
+    // useTime초 동안 집중 타이머 UI를 표시하고, 완료 시 onComplete 호출
+    // 도중에 IsFocusing이 false가 되면 취소
+    private IEnumerator FocusCoroutine(EFocusType focusType, float useTime, System.Action onComplete = null)
+    {
+        if (IsFocusing) yield break; // 이미 집중 중이면 취소
+
+        IsFocusing = true;
+        FocusType = focusType;
+        Animator.UpdateFocus();
+
+        // 집중 타이머 UI 활성화
+        UI_FocusTimer focusTimer = Mgr_UI.Inst.FocusTimer;
+        focusTimer.gameObject.SetActive(true);
+        focusTimer.Init(useTime);
+
+        float elapsed = 0f;
+        while (elapsed < useTime)
+        {
+            if (!IsFocusing)                           // 외부에서 집중 취소 → UI 비활성 후 중단
+            {
+                focusTimer.gameObject.SetActive(false);
+                Animator.UpdateFocus();
+                yield break;
+            }
+            elapsed += Time.deltaTime;
+            focusTimer.UpdateTimer(useTime - elapsed, useTime);
+            yield return null;
+        }
+        focusTimer.gameObject.SetActive(false);
+        IsFocusing = false;
+        Animator.UpdateFocus();
+        onComplete?.Invoke();
+    }
+
+    #endregion
+
+
+
+    #region 공격 ---------------------------------------
+
     [Header("콤보")]
     [Tooltip("현재 콤보 단계 (0 = 미공격, 1 = 첫 번째, 2 = 두 번째 ...)")]
     public int  ComboCount = 0; // 현재 콤보 단계 (0 = 미공격, 1 = 첫 번째, 2 = 두 번째 ...)
@@ -281,6 +334,9 @@ public class Character_Player : MonoBehaviour, IDamageable, IInventory
         }
         // CanCombo == false 인 동안의 입력은 무시
     }
+
+    #endregion
+
 
 
     #region 애니메이션 이벤트 ---------------------------------------

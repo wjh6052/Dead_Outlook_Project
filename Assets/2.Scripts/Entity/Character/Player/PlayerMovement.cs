@@ -152,6 +152,12 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         KCC.SetRotation(Quaternion.LookRotation(dir)); // KCC가 회전을 관리하므로 transform 대신 KCC로 지정
     }
 
+    // 지정한 위치 · 방향으로 즉시 이동 — KCC가 위치를 관리하므로 transform 대신 KCC로 지정 (맵 이동 스폰 등)
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        KCC.SetPositionAndRotation(position, rotation);
+    }
+
     // 잡힘 — Character_Player.OnGrabbed에서 호출
     // grabberPosition : 잡은 좀비의 위치 (회전 방향 계산용)
     public void OnGrabbed(Vector3 grabberPosition)
