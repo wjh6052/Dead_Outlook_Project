@@ -32,7 +32,7 @@ public class UI_Inventory : MonoBehaviour
 
         Vest_EquipSlot.Init(item =>
         {
-            Player_Inventory.VestItem = item as Item_Container;
+            Player_Inventory.SetVest(item as Item_Container); // 조끼 데이터 + 몸의 조끼 오브젝트
             Vest_ItemGrid.gameObject.SetActive(Player_Inventory.VestItem != null);
             Vest_ItemGrid.Init(Player_Inventory.VestItem?.ContainerInventory);
         });

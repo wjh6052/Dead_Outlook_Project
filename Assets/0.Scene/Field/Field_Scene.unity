@@ -1082,6 +1082,7 @@ MonoBehaviour:
   WeaponSocket_1: {fileID: 0}
   WeaponSocket_2: {fileID: 0}
   HandSocket_R: {fileID: 0}
+  BagSocket: {fileID: 0}
   IK_Hand_L: {fileID: 0}
   StartTarget_Hand_L: {fileID: 0}
   Target_Hand_L: {fileID: 0}

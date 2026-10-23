@@ -19,6 +19,10 @@ public class MeshComponent : MonoBehaviour
     [Tooltip("가방을 멜 등 위치 — 가방 프리팹 원점이 여기에 맞춰짐")]
     public Transform BagSocket; // 가방 장착 위치 (척추 뼈 아래)
 
+    [Header("조끼 소켓")]
+    [Tooltip("조끼를 입을 몸통 위치 — 조끼 프리팹의 HolsterPoint가 여기에 맞춰짐")]
+    public Transform VestSocket; // 조끼 장착 위치 (가슴 · 척추 뼈 아래)
+
     [Header("IK")]
     [Tooltip("왼손 IK 컨스트레인트")]
     public TwoBoneIKConstraint IK_Hand_L;       // 왼손 IK 컨스트레인트

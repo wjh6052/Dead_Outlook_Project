@@ -100,6 +100,7 @@ public class UI_ContextMenu : MonoBehaviour
     {
         Item item = TargetItemIcon.ItemData;
         Vector3 pos = Character_Player.Inst.transform.position;
+        pos.y += 0.3f;
 
         TargetItemIcon.Inventory.RemoveItem(TargetItemIcon);
         Destroy(TargetItemIcon.gameObject);

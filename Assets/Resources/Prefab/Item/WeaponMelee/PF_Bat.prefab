@@ -80,7 +80,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 734924b94dbba6748af734024b2cdf5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon_Melee
-  WeaponData:
+  ItemData:
     <ItemType>k__BackingField: 0
     <Rarity>k__BackingField: 0
     <ID>k__BackingField: 
@@ -96,12 +96,9 @@ MonoBehaviour:
     <IsRotated>k__BackingField: 0
     <Icon>k__BackingField: {fileID: 0}
     <Prefab>k__BackingField: {fileID: 0}
-    <WeaponType>k__BackingField: 0
-    <Damage>k__BackingField: 0
-    <AttackSpeed>k__BackingField: 0
   Owner: {fileID: 0}
-  GripPoint_L: {fileID: 3477157192701279129}
   HolsterPoint: {fileID: 0}
+  GripPoint_L: {fileID: 3477157192701279129}
 --- !u!114 &-6765706178214764234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -242,6 +239,10 @@ PrefabInstance:
     - target: {fileID: 6568644974140292503, guid: 30e705fa405c1b9488f73a5fad231205, type: 3}
       propertyPath: m_Name
       value: SM_Bat
+      objectReference: {fileID: 0}
+    - target: {fileID: 6568644974140292503, guid: 30e705fa405c1b9488f73a5fad231205, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

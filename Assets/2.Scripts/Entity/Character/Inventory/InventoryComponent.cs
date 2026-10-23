@@ -22,6 +22,9 @@ public class InventoryComponent : MonoBehaviour
     [Tooltip("BagSocket에 생성된 가방 오브젝트")]
     public EquipItem_Container_Bag BagObject; // 현재 BagSocket에 장착된 가방 오브젝트
 
+    [Tooltip("VestSocket에 생성된 조끼 오브젝트")]
+    public EquipItem_Container_Vest VestObject; // 현재 VestSocket에 장착된 조끼 오브젝트
+
     private IInventory InventoryOwner; // 같은 오브젝트의 IInventory 구현체
 
     private void Awake()
@@ -37,6 +40,7 @@ public class InventoryComponent : MonoBehaviour
         foreach (Transform child in InventoryOwner.MeshComp.WeaponSocket_1) Destroy(child.gameObject);
         foreach (Transform child in InventoryOwner.MeshComp.WeaponSocket_2) Destroy(child.gameObject);
         foreach (Transform child in InventoryOwner.MeshComp.BagSocket) Destroy(child.gameObject);
+        foreach (Transform child in InventoryOwner.MeshComp.VestSocket) Destroy(child.gameObject);
 
         yield return null;
     }
@@ -65,7 +69,7 @@ public class InventoryComponent : MonoBehaviour
         {
             VestItem.ContainerInventory.Items.Clear();
             VestItem.ContainerInventory.OnChanged?.Invoke();
-            VestItem = null;
+            SetVest(null); // 조끼 해제 — 몸의 조끼 오브젝트도 제거
         }
 
         // 가방 초기화
@@ -143,6 +147,32 @@ public class InventoryComponent : MonoBehaviour
         // 등에 멘 가방은 바닥 아이템이 아니므로 줍기 · 물리 · 충돌 비활성화 (EquipItem)
         BagObject.InitEquip(item, gameObject);
         BagObject.AttachToHolster(InventoryOwner.MeshComp.BagSocket); // 홀스터 포인트 기준으로 위치 보정
+    }
+
+    // 조끼 장착/해제 — item이 null이면 해제 / 장착하면 조끼 오브젝트를 VestSocket에 표시
+    public void SetVest(Item_Container item)
+    {
+        VestItem = item;
+        if (VestObject != null)
+            Destroy(VestObject.gameObject); // 기존 조끼 오브젝트 제거
+        VestObject = null;
+
+        if (item == null) return;
+
+        // 아이템 프리팹을 VestSocket에 소환
+        GameObject vestObject = Instantiate(item.Prefab, InventoryOwner.MeshComp.VestSocket);
+        VestObject = vestObject.GetComponent<EquipItem_Container_Vest>();
+        if (VestObject == null)
+        {
+            // 조끼 컴포넌트가 없는 프리팹 — 데이터 장착은 유지하고 몸에 보이는 오브젝트만 생략
+            Debug.LogWarning($"{vestObject.name}에 EquipItem_Container_Vest가 없습니다 ({item.ID})");
+            Destroy(vestObject);
+            return;
+        }
+
+        // 입은 조끼는 바닥 아이템이 아니므로 줍기 · 물리 · 충돌 비활성화 (EquipItem)
+        VestObject.InitEquip(item, gameObject);
+        VestObject.AttachToHolster(InventoryOwner.MeshComp.VestSocket); // 홀스터 포인트 기준으로 위치 보정
     }
 
 

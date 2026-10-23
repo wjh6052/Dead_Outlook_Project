@@ -59,9 +59,12 @@
 - [ ] 아이템 3D 모델링 제작 (아이템 모델은 Read/Write 켜기 — 바닥에서 Outline이 메쉬를 읽음)
 
 ### 장착 아이템
-- [ ] 조끼 · 벨트 장착 시 오브젝트 부착 — EquipItem_Container 상속 클래스, VestSocket · BeltSocket, InventoryComponent 장착 함수
-  - 벨트는 EContainerType에 Belt 추가 + 인벤토리 UI 벨트 칸 필요 (지금 테스트 "밸트"는 Vest로 들어가 있음)
-- [ ] 가방 · 조끼 · 벨트 장착 함수 일반화 검토 — SetBag 등을 EContainerType으로 구분하는 SetContainer 하나로
+- [ ] PF_Vest_VestWork에 Interactable_Item 추가 — 없으면 바닥에 버린 조끼를 F키로 줍지 못함
+- [ ] 조끼 단계 추가 검토 — 작업 조끼(하) → 낚시 조끼(중) → 전술 조끼(상)
+- [ ] 가방 · 조끼 장착 함수 일반화 검토 — SetBag · SetVest를 EContainerType으로 구분하는 SetContainer 하나로 (장착 종류가 늘어날 때)
+
+### 디테일 작업 (데이터)
+- [ ] 구글시트 값 앞뒤 공백 자동 제거 — Tools_ItemDataFetcher에서 칸 값 Trim (붙여넣기로 공백이 들어가 아이콘을 못 찾던 문제 예방)
 
 
 ## 고민중
@@ -96,6 +99,9 @@
 - [v] 등에 멘 무기가 너무 위로 올라가는 문제 (손 기준 원점 대신 HolsterPoint 기준으로 등 소켓에 부착)
 - [v] 아이템 장착 시 Outline이 메쉬를 못 읽는 오류 (아이템 모델 FBX Read/Write 켜기)
 - [v] 아이콘 · 프리팹 경로가 틀리면 아이콘이 비거나 장착 시 오류 (Mgr_Item — 기본 아이콘 Icon_Temp · 테스트 프리팹으로 대체 + 경고 로그)
+- [v] 시트 아이콘 칸 앞 공백 때문에 아이콘을 못 찾던 문제 (시트 값 수정)
+- [v] General 아이템을 버릴 때 Outline 메쉬 오류 (General 모델 7종 Read/Write 켜기)
+- [v] 버린 아이템이 바닥에 묻히는 문제 (UI_ContextMenu/OnDrop — 생성 위치를 0.3 위로)
 
 ### 장착 아이템 (EquipItem)
 - [v] EquipItem 공통 부모 — InitEquip(Item, owner) (줍기 · 물리 · 콜라이더 · 레이어), AttachToSocket · AttachToHolster, HolsterPoint, FindChild
@@ -103,12 +109,18 @@
 - [v] EquipItem_Container (ContainerData 캐스팅 속성) → EquipItem_Container_Bag
 - [v] GripPoint_L · HolsterPoint를 자식 이름으로 자동 연결 (Awake — Instantiate 직후 필요)
 - [v] 가방 장착 시 등에 오브젝트 표시 (MeshComponent.BagSocket, InventoryComponent/SetBag — 사망 시 함께 제거)
+- [v] 조끼 장착 시 몸에 오브젝트 표시 (EquipItem_Container_Vest, MeshComponent.VestSocket, InventoryComponent/SetVest — 사망 시 함께 제거)
+- [v] 벨트는 별도 타입 없이 조끼(Vest)로 통합 — 테스트 "밸트" → 작업 조끼 (EContainerType은 Bag · Vest · Case 유지)
+- [v] 작업 조끼 모델 · 프리팹 · 아이콘 (PF_Vest_VestWork, Icon_Vest_VestWork) + 플레이어 VestSocket 배치
 
 ### 아이템 데이터 · 에디터 도구
 - [v] 아이콘 · 프리팹을 아이템 타입별 폴더에서 찾기 (UI/Icon/{타입}/, Prefab/Item/{타입}/)
 - [v] Tools 메뉴 스크립트 Tools_ 접두사 규칙 (Tools_ItemDataFetcher · Tools_ItemIconBaker, Editor 폴더)
 - [v] 아이콘 베이킹 툴 복원 (Tools_ItemIconBaker — 모델 → 아이콘 PNG) + Z축(롤) 회전 추가
 - [v] 인스펙터 표시 변수 Tooltip · 미표시 변수 주석 규칙 — 플레이어 스크립트 적용 (Character_Player · PlayerMovement · PlayerAnimator · InventoryComponent · MeshComponent)
+- [v] General 아이템 7종 추가 — 덕트 테이프 · 손목시계 · 곰인형 · 순간접착제 · 고장 난 휴대폰 · 그래픽카드 · 건전지 (모델 · 아이콘 · 시트 데이터)
+- [v] 컨테이너 아이템 설명 정리 — 작업 조끼 · 노트북 가방 · 등산 배낭
+- [v] 아이템 ID 규칙 — {시트 타입}_{영어 이름} (예: General_DuctTape, Container_Bag_Laptop), 아이콘 Icon_ · 프리팹 PF_ + 같은 이름
 
 ### 좀비 잡기 공격 (잡기 → 물기 → 밀치기)
 - [v] 좀비 Zombie_Grab · Zombie_Bite · Zombie_Pushed / 플레이어 Player_Grabbed · Player_Bitten · Player_Push 애니메이션 추가
