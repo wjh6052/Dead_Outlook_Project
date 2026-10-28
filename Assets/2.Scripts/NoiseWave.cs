@@ -8,6 +8,7 @@ public class NoiseWave : MonoBehaviour
     [SerializeField] private int   Segments    = 64;   // 원을 구성하는 점 개수 (클수록 부드러움)
     [SerializeField] private float LineWidth   = 0.05f; // 선 굵기
     [SerializeField] [Range(0f, 1f)] private float ExpandRatio = 0.6f; // 전체 duration 중 확장에 쓰는 비율 (나머지는 페이드)
+    [SerializeField] private float Duration    = 1f;    // 파동 지속 시간 (초)
 
     private LineRenderer Lr;
 
@@ -30,13 +31,13 @@ public class NoiseWave : MonoBehaviour
     // ============================
 
     // radius   : 파동이 퍼질 최대 반지름 (m)
-    // duration : 파동 지속 시간 (초)
-    public void Init(float radius, float duration)
+    // duration : 파동 지속 시간 (초) — Duration 변수 사용
+    public void Init(float radius)
     {
-        StartCoroutine(PlayWave(radius, duration));
+        StartCoroutine(C_PlayWave(radius, Duration));
     }
 
-    private IEnumerator PlayWave(float radius, float duration)
+    private IEnumerator C_PlayWave(float radius, float duration)
     {
         Color baseColor  = Lr.startColor;
         float expandTime = duration * ExpandRatio;

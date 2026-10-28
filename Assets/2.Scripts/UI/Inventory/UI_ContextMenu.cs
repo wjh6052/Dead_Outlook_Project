@@ -104,6 +104,7 @@ public class UI_ContextMenu : MonoBehaviour
 
         TargetItemIcon.Inventory.RemoveItem(TargetItemIcon);
         Destroy(TargetItemIcon.gameObject);
+        Character_Player.Inst.InventoryComp.OnItemChanged(); // 버리기
 
         Mgr_Item.Inst.SpawnItem(item, pos);
         Destroy(gameObject);

@@ -45,7 +45,10 @@ public class Item_Container : Item
     {
         float total = Weight;
         foreach (Item item in ContainerInventory.Items)
-            total += item.Weight * item.Amount;
+        {
+            if (item is Item_Container container) total += container.GetTotalWeight(); // 안에 든 컨테이너는 그 안의 아이템까지 계산
+            else                                  total += item.Weight * item.Amount;
+        }
         return total;
     }
 

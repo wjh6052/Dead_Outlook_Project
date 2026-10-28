@@ -18,7 +18,6 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-
         MainCamera = transform.Find("Camera_Main").GetComponent<Camera>();
         WorldUICamera = transform.Find("Camera_WorldUI").GetComponent<Camera>();
         MainCamera.transform.localPosition = CameraOffset;

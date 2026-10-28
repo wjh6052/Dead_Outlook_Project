@@ -4,14 +4,16 @@ using UnityEngine.AI;
 
 public class Mgr_Noise : MonoBehaviour
 {
-    [SerializeField] private NoiseWave WavePrefab;   // 파동 프리팹
-    [SerializeField] private float     WaveDuration = 1f; // 파동 지속 시간 (초)
+    private NoiseWave WavePrefab;   // 파동 프리팹
 
     public static Mgr_Noise Inst;
 
     private void Awake()
     {
         Inst = this;
+
+        WavePrefab = Resources.Load<NoiseWave>("Prefab/PF_NoiseWave");
+        if (WavePrefab == null) Debug.LogError("[Mgr_Noise] 파동 프리팹을 찾지 못함 — Resources/Prefab/PF_NoiseWave");
     }
 
     // ============================
@@ -25,7 +27,7 @@ public class Mgr_Noise : MonoBehaviour
     {
         // 파동 생성
         NoiseWave wave = Instantiate(WavePrefab, source.transform.position, Quaternion.identity);
-        wave.Init(radius, WaveDuration);
+        wave.Init(radius);
 
         // 반경 내 콜라이더 검색
         Collider[] colliders = Physics.OverlapSphere(source.transform.position, radius);

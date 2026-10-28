@@ -26,6 +26,7 @@ public class InventoryComponent : MonoBehaviour
     public EquipItem_Container_Vest VestObject; // 현재 VestSocket에 장착된 조끼 오브젝트
 
     private IInventory InventoryOwner; // 같은 오브젝트의 IInventory 구현체
+    private Character_Player Owner;    // 인벤토리 소유 플레이어 — Character_Player.Awake에서 Init으로 전달
 
     private void Awake()
     {
@@ -46,15 +47,54 @@ public class InventoryComponent : MonoBehaviour
     }
 
 
+    // 소유 플레이어 설정 — Character_Player.Awake에서 호출
+    public void Init(Character_Player owner)
+    {
+        Owner = owner;
+    }
+
+
+    // 아이템 변경 — 줍기 · 장착 · 드래그 이동 · 버리기 · 수량 변경 시 호출
+    // 소지한 모든 아이템의 무게를 합산해 플레이어의 CarryWeight에 적용
+    public void OnItemChanged()
+    {
+        float weight = 0f;
+
+        // 주머니
+        foreach (Item item in PocketData.Items)
+        {
+            if (item is Item_Container container) weight += container.GetTotalWeight(); // 컨테이너는 안의 아이템까지 계산
+            else                                  weight += item.Weight * item.Amount;
+        }
+
+        // 조끼 · 가방 — 자체 무게 + 안의 아이템
+        if (VestItem != null) weight += VestItem.GetTotalWeight();
+        if (BagItem  != null) weight += BagItem.GetTotalWeight();
+
+        // 무기
+        if (Weapon_1_Item != null) weight += Weapon_1_Item.Weight;
+        if (Weapon_2_Item != null) weight += Weapon_2_Item.Weight;
+
+        Owner.CarryWeight = weight;
+        Debug.Log($"[InventoryComponent] 아이템 변경 — 소지 무게: {weight}kg");
+    }
+
+
     // 장착 슬롯 자동 장착 시도 → Pocket → Vest → Bag 순서로 아이템 추가
     public bool TryAddItem(Item item)
     {
-        if (Mgr_UI.Inst.UI_Inventory_Player.TryEquip(item)) return true;
-        if (PocketData.TryAddItem(item)) return true;
-        if (VestItem?.ContainerInventory.TryAddItem(item) == true) return true;
-        if (BagItem?.ContainerInventory.TryAddItem(item) == true) return true;
-        return false;
+        if (Mgr_UI.Inst.UI_Inventory_Player.TryEquip(item)) return true; // 장착은 SetWeapon · SetBag · SetVest에서 OnItemChanged 호출
+
+        bool added = PocketData.TryAddItem(item)
+                  || VestItem?.ContainerInventory.TryAddItem(item) == true
+                  || BagItem?.ContainerInventory.TryAddItem(item)  == true;
+
+        if (added) OnItemChanged();
+        return added;
     }
+
+
+    
 
 
     // 모든 인벤토리 초기화 — 사망 시 아이템 손실 처리
@@ -121,12 +161,14 @@ public class InventoryComponent : MonoBehaviour
         }
 
         InventoryOwner.WeaponSlotUpdate();
+        OnItemChanged();
     }
 
     // 가방 장착/해제 — item이 null이면 해제 / 장착하면 가방 오브젝트를 BagSocket에 표시
     public void SetBag(Item_Container item)
     {
         BagItem = item;
+        OnItemChanged(); // 데이터 변경 직후 호출 — 아래 오브젝트 생성은 중간에 return될 수 있음
         if (BagObject != null)
             Destroy(BagObject.gameObject); // 기존 가방 오브젝트 제거
         BagObject = null;
@@ -153,6 +195,7 @@ public class InventoryComponent : MonoBehaviour
     public void SetVest(Item_Container item)
     {
         VestItem = item;
+        OnItemChanged(); // 데이터 변경 직후 호출 — 아래 오브젝트 생성은 중간에 return될 수 있음
         if (VestObject != null)
             Destroy(VestObject.gameObject); // 기존 조끼 오브젝트 제거
         VestObject = null;

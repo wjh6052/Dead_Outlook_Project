@@ -1,0 +1,38 @@
+{
+    "Items": [
+        {
+            "ItemType": "WeaponMelee",
+            "Rarity": "Normal",
+            "ID": "WeaponMelee_Bet",
+            "Name": "방망이",
+            "Description": "방망이다",
+            "Weight": 10.0,
+            "MaxStack": 1,
+            "TileSizeX": 4,
+            "TileSizeY": 2,
+            "IconKey": "UI/Icon/WeaponMelee/Icon_Bat",
+            "PrefabKey": "Prefab/Item/WeaponMelee/PF_Bat",
+            "WeaponType": "Melee",
+            "WeaponMeleeType": "Bat",
+            "Damage": 10.0,
+            "AttackSpeed": 1.0
+        },
+        {
+            "ItemType": "WeaponMelee",
+            "Rarity": "Rare",
+            "ID": "WeaponMelee_Axe",
+            "Name": "도끼",
+            "Description": "도끼다",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 4,
+            "TileSizeY": 2,
+            "IconKey": "UI/Icon/WeaponMelee/Icon_Axe",
+            "PrefabKey": "Prefab/Item/WeaponMelee/PF_Axe",
+            "WeaponType": "Melee",
+            "WeaponMeleeType": "Axe",
+            "Damage": 20.0,
+            "AttackSpeed": 5.0
+        }
+    ]
+}

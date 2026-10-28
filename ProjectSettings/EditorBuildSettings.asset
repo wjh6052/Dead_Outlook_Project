@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/0.Scene/Base_Scene.unity
+    path: Assets/0.Scene/Mgr_Scene.unity
     guid: f4e7b2fcecadaaf458ffedee138d4e09
   - enabled: 1
     path: Assets/0.Scene/Player_Scene.unity
@@ -20,6 +20,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/0.Scene/Field/Field_Scene.unity
     guid: bc107c586d78ff549ad1e2c757ab0cd6
+  - enabled: 1
+    path: Assets/0.Scene/Loading_Scene.unity
+    guid: 7781f38e41df11c49bf26da5dbffec34
+  - enabled: 1
+    path: Assets/0.Scene/Camera_Scene.unity
+    guid: 77ecc74d4ced0184aba021eab4d978e3
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 01f5d7682e527bb488b281068e6ecd75, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

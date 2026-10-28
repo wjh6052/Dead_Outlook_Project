@@ -11,6 +11,15 @@ public struct FStat
     public bool  IsEmpty => Current <= 0f; // 0 이하인지
     public float Ratio   => Current / Max; // 0~1 비율 (UI 바 표시용)
 
-    public void Add(float amount) => Current = Mathf.Clamp(Current + amount, 0f, Max); // 증감 (음수면 감소, 0~Max 제한)
+    public System.Action OnDecreased; // 값이 줄어들었을 때 호출
+
+    // 증감 (음수면 감소, 0~Max 제한)
+    public void Add(float amount)
+    {
+        float prev = Current;
+        Current = Mathf.Clamp(Current + amount, 0f, Max);
+        if (Current < prev) OnDecreased?.Invoke(); // 실제로 줄었을 때만
+    }
+
     public void Fill()            => Current = Max;                                    // 최대로 채우기
 }

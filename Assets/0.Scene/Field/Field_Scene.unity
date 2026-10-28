@@ -1295,8 +1295,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bda144531aba8e4fb3f39471e513c61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Character_Zombie
-  <MaxHP>k__BackingField: 10
-  <HP>k__BackingField: 0
+  HP:
+    Max: 100
+    Current: 0
   <AttackDamage>k__BackingField: 10
   <WalkSpeed>k__BackingField: 1
 --- !u!4 &891109993
@@ -1409,7 +1410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapController_Field
   <Map>k__BackingField: 1
-  SpawnPosition: {x: 0, y: -7.5, z: 0}
+  SpawnPosition: {x: 0, y: 0, z: 0}
   SpawnRotation: {x: 0, y: 0, z: 0}
 --- !u!4 &1344975748
 Transform:
@@ -1895,8 +1896,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bda144531aba8e4fb3f39471e513c61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Character_Zombie
-  <MaxHP>k__BackingField: 10
-  <HP>k__BackingField: 0
+  HP:
+    Max: 100
+    Current: 0
   <AttackDamage>k__BackingField: 10
   <WalkSpeed>k__BackingField: 1
 --- !u!136 &1420045092

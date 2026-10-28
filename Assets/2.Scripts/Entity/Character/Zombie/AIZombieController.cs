@@ -68,6 +68,8 @@ public class AIZombieController : MonoBehaviour
 
     private void Update()
     {
+        if (Mgr_Game.Inst.GameState != EGameState.Play) return; // 로딩 중 — 대기
+
         // 시각 감지
         UpdateVisualDetection();
         

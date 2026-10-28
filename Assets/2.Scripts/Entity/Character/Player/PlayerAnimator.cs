@@ -45,6 +45,8 @@ public class PlayerAnimator : MonoBehaviour
     private int HashWeaponMeleeType;
     private int  HashIsFocusing;
     private int  HashFocusType;
+    private int  HashEatType;
+    private int  HashMedicalType;
     private int  HashOnFocusStart;
     private int  HashOnGrabbed;
     private int  HashOnDeath;
@@ -70,6 +72,8 @@ public class PlayerAnimator : MonoBehaviour
         HashWeaponMeleeType = Animator.StringToHash("WeaponMeleeType");
         HashIsFocusing      = Animator.StringToHash("IsFocusing");
         HashFocusType       = Animator.StringToHash("FocusType");
+        HashEatType         = Animator.StringToHash("EatType");
+        HashMedicalType     = Animator.StringToHash("MedicalType");
         HashOnFocusStart    = Animator.StringToHash("OnFocusStart");
         HashOnGrabbed       = Animator.StringToHash("OnGrabbed");
         HashOnDeath         = Animator.StringToHash("OnDeath");
@@ -129,7 +133,14 @@ public class PlayerAnimator : MonoBehaviour
             Anim.SetTrigger(HashOnFocusStart);
 
         Anim.SetBool(HashIsFocusing,  isFocusing);
-        Anim.SetFloat(HashFocusType, (float)Character_Player.Inst.FocusType);
+        Anim.SetInteger(HashFocusType, (int)Character_Player.Inst.FocusType);
+
+        // 분류별 세부 종류 — 해당 분류의 파라미터에만 전달
+        switch (Character_Player.Inst.FocusType)
+        {
+            case EFocusType.Food:    Anim.SetFloat(HashEatType,     Character_Player.Inst.FocusSubType); break;
+            case EFocusType.Medical: Anim.SetFloat(HashMedicalType, Character_Player.Inst.FocusSubType); break;
+        }
 
         PrevIsFocusing = isFocusing;
     }

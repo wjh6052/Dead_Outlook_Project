@@ -1,0 +1,55 @@
+{
+    "Items": [
+        {
+            "ItemType": "Food",
+            "Rarity": "Normal",
+            "ID": "Food_InstantRice",
+            "Name": "즉석밥",
+            "Description": "데우지 않고 먹어도 배는 찬다",
+            "Weight": 0.20000000298023225,
+            "MaxStack": 1,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/Food/Icon_InstantRice",
+            "PrefabKey": "Prefab/Item/Food/PF_InstantRice",
+            "HungerAmount": 40.0,
+            "ThirstAmount": 0.0,
+            "UseTime": 4.0,
+            "EatType": "Eat"
+        },
+        {
+            "ItemType": "Food",
+            "Rarity": "Rare",
+            "ID": "Food_EnergyBar",
+            "Name": "에너지바",
+            "Description": "작고 가벼워 들고 다니기 좋다. 허기를 조금 달래준다",
+            "Weight": 0.05000000074505806,
+            "MaxStack": 5,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/Food/Icon_EnergyBar",
+            "PrefabKey": "Prefab/Item/Food/PF_EnergyBar",
+            "HungerAmount": 25.0,
+            "ThirstAmount": -10.0,
+            "UseTime": 2.0,
+            "EatType": "Eat"
+        },
+        {
+            "ItemType": "Food",
+            "Rarity": "Normal",
+            "ID": "Food_WaterBottle",
+            "Name": "생수병",
+            "Description": "500ml 생수. 갈증을 해소해준다",
+            "Weight": 0.5,
+            "MaxStack": 1,
+            "TileSizeX": 1,
+            "TileSizeY": 2,
+            "IconKey": "UI/Icon/Food/Icon_WaterBottle",
+            "PrefabKey": "Prefab/Item/Food/PF_WaterBottle",
+            "HungerAmount": 0.0,
+            "ThirstAmount": 50.0,
+            "UseTime": 3.0,
+            "EatType": "Drink"
+        }
+    ]
+}

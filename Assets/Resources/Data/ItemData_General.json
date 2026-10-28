@@ -1,0 +1,95 @@
+{
+    "Items": [
+        {
+            "ItemType": "General",
+            "Rarity": "Normal",
+            "ID": "General_DuctTape",
+            "Name": "덕트 테이프",
+            "Description": "접착력이 강한 은색 테이프. 장비 수리와 고정에 쓴다.",
+            "Weight": 0.20000000298023225,
+            "MaxStack": 1,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/General/Icon_DuctTape",
+            "PrefabKey": "Prefab/Item/General/PF_DuctTape"
+        },
+        {
+            "ItemType": "General",
+            "Rarity": "Rare",
+            "ID": "General_Watch",
+            "Name": "손목시계",
+            "Description": "아직 작동하는 아날로그 손목시계. 교환용으로 가치가 있다",
+            "Weight": 0.10000000149011612,
+            "MaxStack": 1,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/General/Icon_Watch",
+            "PrefabKey": "Prefab/Item/General/PF_Watch"
+        },
+        {
+            "ItemType": "General",
+            "Rarity": "Rare",
+            "ID": "General_TeddyBear",
+            "Name": "곰인형",
+            "Description": "솜이 든 작은 곰인형. 특별한 쓸모는 없다",
+            "Weight": 0.10000000149011612,
+            "MaxStack": 1,
+            "TileSizeX": 2,
+            "TileSizeY": 2,
+            "IconKey": "UI/Icon/General/Icon_TeddyBear",
+            "PrefabKey": "Prefab/Item/General/PF_TeddyBear"
+        },
+        {
+            "ItemType": "General",
+            "Rarity": "Epic",
+            "ID": "General_SuperGlue",
+            "Name": "순간접착제",
+            "Description": "빠르게 굳는 접착제. 작은 부품을 붙일 때 쓴다",
+            "Weight": 0.05000000074505806,
+            "MaxStack": 1,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/General/Icon_SuperGlue",
+            "PrefabKey": "Prefab/Item/General/PF_SuperGlue"
+        },
+        {
+            "ItemType": "General",
+            "Rarity": "Epic",
+            "ID": "General_BrokenPhone",
+            "Name": "고장 난 휴대폰",
+            "Description": "전원 버튼을 눌러도 아무 반응이 없는 휴대폰",
+            "Weight": 0.20000000298023225,
+            "MaxStack": 1,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/General/Icon_BrokenPhone",
+            "PrefabKey": "Prefab/Item/General/PF_BrokenPhone"
+        },
+        {
+            "ItemType": "General",
+            "Rarity": "Legendary",
+            "ID": "General_GraphicsCard",
+            "Name": "그래픽카드",
+            "Description": "컴퓨터용 그래픽카드. 값비싼 전자 부품이 들어 있다.",
+            "Weight": 2.0,
+            "MaxStack": 1,
+            "TileSizeX": 2,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/General/Icon_GraphicsCard",
+            "PrefabKey": "Prefab/Item/General/PF_GraphicsCard"
+        },
+        {
+            "ItemType": "General",
+            "Rarity": "Epic",
+            "ID": "General_Battery",
+            "Name": "건전지",
+            "Description": "일반 AA 건전지. 손전등 같은 전자기기에 넣어 쓴다.",
+            "Weight": 0.029999999329447748,
+            "MaxStack": 20,
+            "TileSizeX": 1,
+            "TileSizeY": 1,
+            "IconKey": "UI/Icon/General/Icon_Battery",
+            "PrefabKey": "Prefab/Item/General/PF_Battery"
+        }
+    ]
+}

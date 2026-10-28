@@ -38,6 +38,9 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
     [field: SerializeField] public bool        bIsGrounded  { get; private set; } // 지면 접촉 여부
     [field: Tooltip("좀비에게 잡혀 있는지 여부")]
     [field: SerializeField] public bool        IsGrabbed    { get; private set; } // 좀비에게 잡혀 있는지 여부
+    [field: Tooltip("고정 여부 — 로딩 중 이동 · 중력 정지")]
+    [field: SerializeField] public bool        IsFrozen     { get; private set; }
+    public void SetFreeze(bool isFrozen) { IsFrozen = isFrozen; }
 
     #endregion
 
@@ -194,18 +197,25 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
         bPrevCrouch = bCrouchInput;
 
         // 점프 — 지면에 있고 버튼을 누른 첫 프레임에만 실행
-        doJump    = bJump && bIsGrounded && !bPrevJump;
+        doJump    = bJump && bIsGrounded && !bPrevJump
+                 && (StanceType == EStanceType.Crouch || Player.Stamina.Current >= Player.StaminaJumpCost); // 스태미나가 점프 소모량보다 적으면 점프 불가 (웅크린 상태는 일어서기만 하므로 검사 안 함)
         bPrevJump = bJump;
 
         // 이동 속도 상태 결정
         if      (MoveInput.sqrMagnitude < 0.01f) SpeedType = ESpeedType.Idle;
-        else if (bRunInput)                       SpeedType = ESpeedType.Run;
+        else if (bRunInput && !Player.IsExhausted)  SpeedType = ESpeedType.Run; // 탈진 상태면 걷기
         else                                      SpeedType = ESpeedType.Walk;
+
+        // 뛰는 중이면 스태미나 소모 (웅크리며 뛰기 포함)
+        if (SpeedType == ESpeedType.Run)
+            Player.Stamina.Add(-Player.StaminaRunCost * deltaTime);
     }
 
     // 캐릭터 속도 결정 — 이동·점프·중력 등 currentVelocity 값을 직접 설정
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
+        if (IsFrozen) { currentVelocity = Vector3.zero; return; } // 고정 중 — 이동 · 중력 정지
+
         if (KCC.GroundingStatus.IsStableOnGround)
         {
             // RootMotion 태그 상태면 루트 모션 속도 사용 — 애니메이션의 XZ 이동을 KCC에 전달
@@ -224,6 +234,7 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
                 (_,                  ESpeedType.Walk) => WalkSpeed,
                 _                                     => 0f,
             };
+            CurrentSpeed *= Player.GetMoveSpeedMultiplier(); // 디버프 이동 속도 감소 (배고픔 · 초과적)
             currentVelocity = GetDesiredMoveDirection() * CurrentSpeed;
 
             if (doJump)
@@ -233,6 +244,7 @@ public class PlayerMovement : MonoBehaviour, ICharacterController
                 {
                     KCC.ForceUnground();                       // KCC의 지면 고정 해제
                     currentVelocity += Vector3.up * JumpForce; // 위로 힘 적용
+                    Player.Stamina.Add(-Player.StaminaJumpCost); // 점프 스태미나 소모
                 }
             }
         }

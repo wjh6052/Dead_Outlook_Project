@@ -1,13 +1,22 @@
 using System.Collections;
 using UnityEngine;
 
+public enum EPlayState
+{
+    Play,    // 조작 가능
+    UI,      // UI 열림
+    Grabbed, // 잡힘
+    Dead     // 사망
+}
 
 public class Mgr_PlayerController : MonoBehaviour
 {
+    [field: Tooltip("플레이어 조작 상태")]
+    [field: SerializeField] public EPlayState PlayState { get; private set; } = EPlayState.Play;
 
     [SerializeField] private float InteractRange = 5f; // 상호작용 최대 거리
     private Interactable FocusedInteractable;          // 현재 레이에 감지된 상호작용 오브젝트
-    
+
     
 
     public static Mgr_PlayerController Inst { get; private set; }
@@ -17,17 +26,11 @@ public class Mgr_PlayerController : MonoBehaviour
         Inst = this;
     }
 
-    // 모든 Start() 완료 후 실행되도록 한 프레임 대기
-    private IEnumerator Start()
-    {
-        yield return null;
-        // 카메라를 플레이어에게 설정
-        Mgr_Camera.Inst.SetTarget(Character_Player.Inst.CameraTarget);
-    }
-
     private void Update()
     {
-        if (Mgr_Game.Inst.GameState == EGameState.Play)
+        if (Character_Player.Inst == null) return; // 플레이어 생성 전
+
+        if (Mgr_Game.Inst.GameState == EGameState.Play && PlayState == EPlayState.Play)
         {
             // 카메라 움직임
             Mgr_Camera.Inst.CameraController.Rotate(Mgr_Input.Inst.Look);
@@ -42,11 +45,25 @@ public class Mgr_PlayerController : MonoBehaviour
         }
         else
         {
-            // Play가 아닐 때(UI·Stop) 마지막 입력이 남아 계속 움직이지 않도록 입력 없음으로 전달
+            // Play가 아닐 때(UI·잡힘·사망·로딩) 마지막 입력이 남아 계속 움직이지 않도록 입력 없음으로 전달
             Character_Player.Inst.Movement.MoveInput = Vector2.zero;
             Character_Player.Inst.Movement.bAim      = false;
             Character_Player.Inst.Movement.bRunInput = false;
         }
+    }
+
+    // 플레이어 고정 · 해제
+    public void SetFreeze(bool isFrozen)
+    {
+        if (Character_Player.Inst == null) return; // 플레이어 없음
+        Character_Player.Inst.Movement.SetFreeze(isFrozen);
+    }
+
+    // 조작 상태 변경 — UI면 커서 표시, 나머지는 잠금
+    public void SetPlayState(EPlayState newPlayState)
+    {
+        PlayState = newPlayState;
+        Mgr_Camera.Inst.SetCursorLock(PlayState != EPlayState.UI);
     }
 
     // 시야 상태 갱신 + 레이캐스트 포커스 탐색
@@ -84,24 +101,27 @@ public class Mgr_PlayerController : MonoBehaviour
     // 인벤토리 창 열기/닫기 Mgr_Input에서 Tab키를 눌렀을 경우 호출
     public void OnInventory()
     {
-        switch (Mgr_Game.Inst.GameState)
+        if (Mgr_Game.Inst.GameState != EGameState.Play) return; // 로딩 중이면 무시
+
+        switch (PlayState)
         {
-            case EGameState.Play:
+            case EPlayState.Play:
                 {
                     Mgr_UI.Inst.OnInventory(true);
                     // 은신처에 있으면 보관함 자동 표시
-                    //if (Mgr_Map.Inst.CurrentMap == EScene.Hideout)
+                    //if (Mgr_Map.Inst.CurrentMap != null && Mgr_Map.Inst.CurrentMap.Map == EScene.Hideout)
                     //    Mgr_UI.Inst.UI_Inventory_Player.ShowBox(Mgr_Hideout.Inst.StorageData);
-                    Mgr_Game.Inst.SetGameState(EGameState.UI);
+                    SetPlayState(EPlayState.UI);
                 }
                 break;
-            case EGameState.UI:
+            case EPlayState.UI:
                 {
                     Mgr_UI.Inst.OnInventory(false);
-                    Mgr_Game.Inst.SetGameState(EGameState.Play);
+                    SetPlayState(EPlayState.Play);
                 }
                 break;
-            case EGameState.Stop:
+            case EPlayState.Grabbed:
+            case EPlayState.Dead:
                 {
 
                 }
@@ -114,7 +134,7 @@ public class Mgr_PlayerController : MonoBehaviour
     // 상호작용 / Mgr_Input에서 F를 눌렀을 경우 호출
     public void OnInteractable()
     {
-        if (Mgr_Game.Inst.GameState != EGameState.Play) return; // UI · 잡힘 등 조작 불가 상태면 무시
+        if (Mgr_Game.Inst.GameState != EGameState.Play || PlayState != EPlayState.Play) return; // UI · 잡힘 등 조작 불가 상태면 무시
 
         if (FocusedInteractable != null)
         {
@@ -128,14 +148,14 @@ public class Mgr_PlayerController : MonoBehaviour
     // 무기 슬롯 선택 / Mgr_Input에서 1·2·3키를 눌렀을 경우 호출
     public void OnWeaponSlot(int slot)
     {
-        if (Mgr_Game.Inst.GameState != EGameState.Play) return;
+        if (Mgr_Game.Inst.GameState != EGameState.Play || PlayState != EPlayState.Play) return;
         Character_Player.Inst.OnWeaponSlot(slot);
     }
 
     // 공격 / Mgr_Input에서 마우스 좌클릭 시 호출
     public void OnAttack()
     {
-        if (Mgr_Game.Inst.GameState != EGameState.Play) return;
+        if (Mgr_Game.Inst.GameState != EGameState.Play || PlayState != EPlayState.Play) return;
         Character_Player.Inst.Attack();
     }
 

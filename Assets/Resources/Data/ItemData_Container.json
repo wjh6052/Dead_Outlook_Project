@@ -1,0 +1,52 @@
+{
+    "Items": [
+        {
+            "ItemType": "Container",
+            "Rarity": "Epic",
+            "ID": "Container_Vest_VestWork",
+            "Name": "작업 조끼",
+            "Description": "주머니가 몇 개 달린 작업용 조끼. 공구나 자잘한 물건을 넣을 수 있다",
+            "Weight": 10.0,
+            "MaxStack": 1,
+            "TileSizeX": 2,
+            "TileSizeY": 2,
+            "IconKey": "UI/Icon/Container/Icon_Vest_VestWork",
+            "PrefabKey": "Prefab/Item/Container/PF_Vest_VestWork",
+            "ContainerType": "Vest",
+            "GridWidth": 4,
+            "GridHeight": 2
+        },
+        {
+            "ItemType": "Container",
+            "Rarity": "Epic",
+            "ID": "Container_Bag_Laptop",
+            "Name": "가방",
+            "Description": "학생들이 메고 다니던 노트북 가방. 일상용품을 넣기에 적당한 크기다",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 3,
+            "TileSizeY": 3,
+            "IconKey": "UI/Icon/Container/Icon_Bag_Laptop",
+            "PrefabKey": "Prefab/Item/Container/PF_Bag_Laptop",
+            "ContainerType": "Bag",
+            "GridWidth": 5,
+            "GridHeight": 5
+        },
+        {
+            "ItemType": "Container",
+            "Rarity": "Legendary",
+            "ID": "Container_Bag_Hiking",
+            "Name": "여행가방",
+            "Description": "장거리 등산용 대형 배낭. 많은 짐을 넣을 수 있지만 그만큼 무거워진다.",
+            "Weight": 20.0,
+            "MaxStack": 1,
+            "TileSizeX": 4,
+            "TileSizeY": 4,
+            "IconKey": "UI/Icon/Container/Icon_Bag_Hiking",
+            "PrefabKey": "Prefab/Item/Container/PF_Bag_Hiking",
+            "ContainerType": "Bag",
+            "GridWidth": 8,
+            "GridHeight": 6
+        }
+    ]
+}

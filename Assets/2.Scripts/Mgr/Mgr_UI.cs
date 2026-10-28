@@ -4,7 +4,8 @@ using UnityEngine.InputSystem;
 
 public class Mgr_UI : MonoBehaviour
 {
-    #region 슬롯 색상 설정값
+    #region 슬롯 설정값
+
     [Header("슬롯 하이라이트 색상")]
     [SerializeField]
     public Color[] SlotColors = new Color[]
@@ -15,6 +16,7 @@ public class Mgr_UI : MonoBehaviour
         new Color(1.00f, 1.00f, 0.00f, 0.50f), // Partial — 예비 (노랑)
     };
     public Color GetHighlightColor(ESlotHighlight highlight) => SlotColors[(int)highlight];
+
 
     [Header("희귀도 색상")] // Normal / Rare / Epic / Unique / Legendary 순서
     [SerializeField]
@@ -28,31 +30,29 @@ public class Mgr_UI : MonoBehaviour
     };
     public Color GetRarityColor(ERarity rarity) => RarityColors[(int)rarity];
 
-    #endregion
 
     [Header("슬롯 설정")]
     [SerializeField] public float SlotCellSize = 63f;
-    [SerializeField] public float SlotSpacing  = 2f;
+    [SerializeField] public float SlotSpacing = 2f;
 
-    [Header("상호작용 WUI")]
-    public WUI_Interact InteractWUI { get; private set; }
-
-    [Header("집중 타이머 UI")]
-    [SerializeField] public UI_FocusTimer  FocusTimer;
-
-    [Header("탈출 타이머 UI")]
-    [SerializeField] public UI_EscapeTimer EscapeTimer;
-
-
-    [Header("플레이어 인벤토리UI")]
-    [SerializeField] public UI_Inventory UI_Inventory_Player;           // 인벤토리 패널
+    #endregion
 
 
     [Header("변수")]
     public bool IsOnUI = false;
 
 
-    public Canvas MainCanvas { get; private set; } // 메인 UI 캔버스
+    #region UI_Scene
+
+    // UI_Scene의 UI 참조 — SceneController_UI가 보관, Mgr_UI는 전달만 (RegisterUI에서 등록)
+    public SceneController_UI SceneUI { get; private set; } // UI_Scene 컨트롤러
+
+    public Canvas MainCanvas => SceneUI.MainCanvas; // 메인 UI 캔버스
+    public UI_FocusTimer  FocusTimer => SceneUI.FocusTimer; // 집중 타이머 UI
+    public UI_EscapeTimer EscapeTimer => SceneUI.EscapeTimer; // 탈출 타이머 UI
+    public UI_Inventory UI_Inventory_Player => SceneUI.UI_Inventory_Player;  // 플레이어 인벤토리UI          // 인벤토리 패널
+
+    #endregion
 
     private UI_ContextMenu  CurrentContextMenu; // 현재 열린 컨텍스트 메뉴
     private List<UI_Window> OpenWindows = new List<UI_Window>(); // 열려있는 창 목록
@@ -62,40 +62,42 @@ public class Mgr_UI : MonoBehaviour
     public UI_ItemIcon  IconPrefab      { get; private set; } // 아이콘 프리팹
     private UI_Window   WindowPrefab;                         // 창 프리팹
 
+    public WUI_Interact InteractWUI { get; private set; }
+
     #endregion
+
 
     public static Mgr_UI Inst { get; private set; }
 
+
     private void Awake()
     {
-        Inst       = this;
-        MainCanvas = GameObject.FindWithTag("MainCanvas").GetComponent<Canvas>();
-        InteractWUI = Instantiate(Resources.Load<WUI_Interact>("Prefab/WUI/PF_WUI_Interact"));
+        Inst = this;
 
-        FocusTimer.gameObject.SetActive(false);
-        EscapeTimer.Init(false);
-
-        //UI 프리팹
+        // 프리팹
         {
+            InteractWUI = Instantiate(Resources.Load<WUI_Interact>("Prefab/WUI/PF_WUI_Interact"));
             SlotPrefab   = Resources.Load<UI_ItemSlot>("Prefab/UI/Inventory/PF_UI_Item_Slot");
             IconPrefab   = Resources.Load<UI_ItemIcon>("Prefab/UI/Inventory/PF_UI_Item_Icon");
             WindowPrefab = Resources.Load<UI_Window>("Prefab/UI/Window/PF_UI_Window");
         }
+    }
+
+
+
+    // UI 등록 + 초기화 — SceneController_UI.Register에서 호출
+    public void RegisterUI(SceneController_UI ui)
+    {
+        SceneUI = ui;
+
+        FocusTimer.gameObject.SetActive(false);
+        EscapeTimer.Init(false);
 
         if (UI_Inventory_Player.gameObject.activeSelf)
             UI_Inventory_Player.gameObject.SetActive(false);
-    }
 
-    private void Start()
-    {
         UI_Inventory_Player.Setup();
     }
-
-    private void Update()
-    {
-
-    }
-
 
 
     // 씬 전환 시 모든 UI 초기화 — Mgr_Game.ChangeScene에서 호출
@@ -158,8 +160,4 @@ public class Mgr_UI : MonoBehaviour
     }
 
     
-
-
-    
-
 }

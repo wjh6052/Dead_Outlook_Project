@@ -144,6 +144,8 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     // 수량 변경 시 호출 — 수량 0이면 인벤토리에서 제거
     private void OnAmountChanged()
     {
+        Character_Player.Inst.InventoryComp.OnItemChanged(); // 수량 변경 (아이템 사용 · 분할)
+
         if (ItemData.Amount <= 0)
         {
             Inventory.RemoveItem(this);
@@ -248,8 +250,11 @@ public class UI_ItemIcon : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
             hoveredInventory.TryDrop(ItemData, hoveredSlot.GridX, hoveredSlot.GridY, Inventory, this))
         {
             bDraggingRotate = false;
+            Character_Player.Inst.InventoryComp.OnItemChanged(); // 드래그 이동 (인벤토리 간 이동 · 스택 합치기 · 가방 안에 넣기)
             return;
         }
+
+        Character_Player.Inst.InventoryComp.OnItemChanged(); // 부분 스택은 실패로 처리되지만 수량이 바뀜
 
         // 드롭 실패 또는 부분 스택 → 회전 복구 후 원래 자리로 복귀
         if (bDraggingRotate) Rotate();
